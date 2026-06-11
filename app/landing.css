@@ -15,6 +15,13 @@
   *{animation:none!important;transition:none!important}
 }
 
+/* ---------- 顶部公告条幅 ---------- */
+.topbar{background:var(--ink);color:#E7E9EC}
+.topbar-in{display:flex;align-items:center;justify-content:center;gap:9px;padding:8px 32px}
+.tb-tag{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--ink);background:var(--mint);padding:2px 7px;border-radius:4px}
+.tb-text{font-family:var(--mono);font-size:12.5px;letter-spacing:.02em;color:#E7E9EC}
+@media (max-width:680px){.topbar-in{padding-left:20px;padding-right:20px}.tb-text{font-size:12px}}
+
 /* ---------- NAV ---------- */
 nav{position:sticky;top:0;z-index:50;background:rgba(247,245,239,.92);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--line)}
 .nav-in{display:flex;align-items:center;gap:32px;padding-top:14px;padding-bottom:14px}

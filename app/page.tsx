@@ -12,6 +12,10 @@ export default function Home() {
   const [lang, setLang] = useState<Lang>("zh");
   const t = LANDING_I18N[lang];
 
+  // 顶部条幅：把 "MVP · 求职季限免开放" 拆成 标签 + 文案
+  const [tbTag, ...tbRest] = t.hero_badge.split(" · ");
+  const tbText = tbRest.join(" · ");
+
   // 语言切换时同步 <html lang>
   useEffect(() => {
     document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
@@ -30,7 +34,14 @@ export default function Home() {
       { threshold: 0, rootMargin: "0px 0px -8% 0px" }
     );
     document.querySelectorAll(".rv").forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    // 兜底：1.2s 后强制显示仍未触发的区块（防 IO 在个别环境不回调导致白屏）
+    const fallback = setTimeout(() => {
+      document.querySelectorAll(".rv:not(.in)").forEach((el) => el.classList.add("in"));
+    }, 1200);
+    return () => {
+      io.disconnect();
+      clearTimeout(fallback);
+    };
   }, []);
 
   return (
@@ -39,6 +50,14 @@ export default function Home() {
       <noscript>
         <style dangerouslySetInnerHTML={{ __html: ".rv{opacity:1!important;transform:none!important}" }} />
       </noscript>
+
+      {/* =================== 顶部公告条幅 =================== */}
+      <div className="topbar">
+        <div className="topbar-in">
+          <span className="tb-tag">{tbTag}</span>
+          <span className="tb-text">{tbText}</span>
+        </div>
+      </div>
 
       {/* =================== NAV =================== */}
       <nav>
@@ -69,7 +88,6 @@ export default function Home() {
       {/* =================== HERO =================== */}
       <section className="wrap hero">
         <div className="rv">
-          <span className="badge"><i /><span>{t.hero_badge}</span></span>
           <h1>
             <span>{t.hero_title_a}</span><br />
             <span>{t.hero_title_b}</span>
