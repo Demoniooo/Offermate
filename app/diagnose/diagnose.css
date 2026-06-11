@@ -142,6 +142,10 @@ textarea::placeholder{color:var(--faint)}
 .find-top span{font-family:var(--mono);font-size:11px;color:var(--mute);margin-left:auto}
 .finding h3{margin:0;font-size:15.5px;font-weight:600;line-height:1.4}
 .finding p{margin:0;font-size:13px;line-height:1.6;color:var(--ink-3)}
+.finding .basis{font-family:var(--mono);font-size:11px;line-height:1.45;color:var(--mute)}
+.finding .basis b{color:var(--green);font-weight:700;letter-spacing:.04em}
+.finding .fix{font-size:12.5px;line-height:1.55;color:#3F4708;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:10px;padding:10px 12px}
+.finding .fix b{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--green);margin-right:6px}
 .affected{margin-top:auto;font-family:var(--mono);font-size:11px;color:var(--mute);padding-top:10px;border-top:1px dashed var(--line)}
 
 .rw{background:var(--card);border:1px solid var(--line-2);border-radius:14px;overflow:hidden}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import { LANDING_I18N, JD_COLORS, type Lang } from "@/lib/landing-i18n";
+import { RUBRIC } from "@/lib/rubric";
 import "./landing.css";
 
 // D3 才会建 /diagnose 路由；现在按钮先指向它（建好前点击会 404）。
@@ -11,6 +12,7 @@ const DIAGNOSE_SAMPLE = "/diagnose?sample=1";
 export default function Home() {
   const [lang, setLang] = useState<Lang>("zh");
   const t = LANDING_I18N[lang];
+  const r = RUBRIC[lang];
 
   // 顶部条幅：把 "MVP · 求职季限免开放" 拆成 标签 + 文案
   const [tbTag, ...tbRest] = t.hero_badge.split(" · ");
@@ -299,6 +301,36 @@ export default function Home() {
             <div className="msg ai"><span className="av">AI</span><div><span className="fu-tag">{t.followup_tag}</span><div className="bubble">{t.chat_q2}</div></div></div>
             <div className="msg me"><span className="av">{t.you_initial}</span><span className="typing"><i /><i /><i /></span></div>
             <div className="depth"><span>{t.depth_label}</span><span><b>L2</b> / L3 · Q3 / 8</span></div>
+          </div>
+        </div>
+      </section>
+
+      {/* =================== 评估方法 · 为什么可信 =================== */}
+      <section id="method" className="wrap sec">
+        <div className="rv">
+          <div className="eyebrow">{r.section.eyebrow}</div>
+          <h2 className="features-title">{r.section.title}</h2>
+          <p className="features-sub">{r.section.sub}</p>
+        </div>
+        <div className="method-grid rv">
+          {r.sources.map((s) => (
+            <div className="method-card" key={s.key}>
+              <h3>{s.name}</h3>
+              <p>{s.summary}</p>
+              <ul>{s.points.map((p, i) => <li key={i}>{p}</li>)}</ul>
+            </div>
+          ))}
+        </div>
+        <div className="principles rv">
+          <div className="principles-title">{r.principles_title}</div>
+          <div className="principles-row">
+            {r.principles.map((p, i) => (
+              <div className="principle" key={i}>
+                <span className="num">{String(i + 1).padStart(2, "0")}</span>
+                <b>{p.label}</b>
+                <p>{p.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

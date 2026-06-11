@@ -311,8 +311,10 @@ export default function Diagnose() {
                 return (
                   <div className="finding" key={i}>
                     <div className="find-top"><span className="sev" style={{ color: c.fg, background: c.bg, borderColor: c.bd }}>{f.sev}</span><span>{f.dim}</span></div>
+                    <div className="basis"><b>{t.basis_label}</b> · {f.basis}</div>
                     <h3>{f.title}</h3>
                     <p>{f.body}</p>
+                    <div className="fix"><b>{t.fix_label}</b>{f.fix}</div>
                     <div className="affected">{f.affected}</div>
                   </div>
                 );

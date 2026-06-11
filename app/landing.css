@@ -173,6 +173,23 @@ h1{margin:22px 0 0;font-size:clamp(36px,4.6vw,58px);line-height:1.12;letter-spac
 .depth{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:12px;border-top:1px dashed var(--line);font-family:var(--mono);font-size:11px;color:var(--mute)}
 .depth b{color:var(--ink)}
 
+/* ---------- 评估方法 ---------- */
+.method-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:4px}
+.method-card{background:var(--card-soft);border:1px solid var(--line);border-radius:14px;padding:24px 26px;transition:background .2s}
+.method-card:hover{background:#fff}
+.method-card h3{margin:0 0 8px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.method-card>p{margin:0 0 14px;font-size:14px;line-height:1.65;color:var(--ink-3);text-wrap:pretty}
+.method-card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+.method-card li{position:relative;padding-left:18px;font-size:13px;line-height:1.5;color:var(--ink-2)}
+.method-card li::before{content:"";position:absolute;left:0;top:6px;width:7px;height:7px;border-radius:2px;background:var(--mint)}
+.principles{margin-top:32px;background:var(--ink);border-radius:18px;padding:34px 40px;color:#F2F4F6}
+.principles-title{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mint);margin-bottom:22px}
+.principles-row{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.principle .num{font-family:var(--mono);font-size:12.5px;color:var(--mint);font-weight:700;letter-spacing:.04em}
+.principle b{display:block;margin:8px 0 6px;font-size:16.5px;font-weight:600}
+.principle p{margin:0;font-size:13.5px;line-height:1.6;color:#B9C2CC;text-wrap:pretty}
+@media (max-width:1020px){.method-grid{grid-template-columns:1fr}.principles-row{grid-template-columns:1fr;gap:22px}.principles{padding:28px 24px}}
+
 /* ---------- CTA ---------- */
 .cta{margin:110px 0 0;padding-bottom:100px}
 .cta-panel{position:relative;overflow:hidden;background:var(--ink);color:#F2F4F6;border-radius:22px;padding:64px 56px}

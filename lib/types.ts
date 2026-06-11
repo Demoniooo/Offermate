@@ -29,8 +29,13 @@ export interface Finding {
   severity: Severity;
   /** 命中的维度，如「表达」「岗位匹配」「STAR · 结构」 */
   dimension: string;
+  /** 依据：命中的 rubric 标准（NACE / 雇主偏好 / Harvard·MIT / 岗位技能库），见 lib/rubric.ts */
+  basis: string;
   title: string;
+  /** 扣分原因（应引用简历原文） */
   body: string;
+  /** 可执行修改建议（带数字的具体改写） */
+  suggestion: string;
   /** 影响范围，如「影响 3 条经历」「匹配度 -14 分」 */
   affected: string;
 }

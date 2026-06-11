@@ -45,10 +45,11 @@ export const DIAGNOSIS_I18N = {
       { label: "案例质量", score: 85, c: "#1F1F1F", note: "选材好，故事尚可挖深" },
       { label: "STAR 结构", score: 76, c: "#9A7A1A", note: "Result 经常省略" }],
     findings_title: "最先要动的 3 件事", findings_total_label: "项发现，按影响力排序",
+    basis_label: "依据", fix_label: "建议",
     findings: [
-      { sev: "高", k: "miss", dim: "表达", title: "\"负责 / 协助\"出现 6 次，等于没写", body: "看不出你\"做了什么\"。每一条都换成可量化、可观察的动作：主导 / 设计 / 拆解 / 上线 / A/B 测试……", affected: "影响 3 条经历" },
-      { sev: "高", k: "miss", dim: "岗位匹配", title: "JD 里的 SQL / 实验方法学没出现", body: "岗位要求里点名的硬技能，简历里完全没提。即使学过，也写一条数据课程项目证明会用。", affected: "匹配度 −14 分" },
-      { sev: "中", k: "weak", dim: "STAR · 结果", title: "\"反响良好\"\"有所增长\"——结果不可信", body: "没有数字的结果不算结果。补一个百分比、一个绝对值，或一个对照——任何一个都行。", affected: "影响 4 条经历" }],
+      { sev: "高", k: "miss", dim: "表达", basis: "Harvard·MIT 规范 · 强动词 / 成就导向", title: "\"负责 / 协助\"出现 6 次，等于没写", body: "看不出你\"做了什么\"。每一条都换成可量化、可观察的动作：主导 / 设计 / 拆解 / 上线 / A/B 测试……", fix: "把每条「负责/协助」换成强动词 + 一个量化结果，例：「主导 3 场新人引导活动，7 日留存 +11%」。", affected: "影响 3 条经历" },
+      { sev: "高", k: "miss", dim: "岗位匹配", basis: "岗位技能库 · 硬技能缺口", title: "JD 里的 SQL / 实验方法学没出现", body: "岗位要求里点名的硬技能，简历里完全没提。即使学过，也写一条数据课程项目证明会用。", fix: "补一条数据课程/项目，写明用 SQL 做了什么、产出了哪张看板，把 JD 点名的硬技能落到纸面。", affected: "匹配度 −14 分" },
+      { sev: "中", k: "weak", dim: "STAR · 结果", basis: "雇主偏好 · 量化成果 + 结果前置", title: "\"反响良好\"\"有所增长\"——结果不可信", body: "没有数字的结果不算结果。补一个百分比、一个绝对值，或一个对照——任何一个都行。", fix: "每条经历补一个可量化 Result：留存/转化/效率/规模任选一个，例：「公众号阅读量 870 → 1.4k」。", affected: "影响 4 条经历" }],
     rewrites_title: "逐条改写，选 3 个最高影响的来看", rewrites_count_label: "共 12 条 · 显示 3",
     before_label: "原文", after_label: "改后",
     rewrites: [
@@ -156,10 +157,11 @@ GPA 3.6/4.0  ·  数据库系统 / 统计学 / 用户研究 课程优秀
       { label: "Examples", score: 85, c: "#1F1F1F", note: "Good picks, deeper stories" },
       { label: "STAR structure", score: 76, c: "#9A7A1A", note: "Result is often omitted" }],
     findings_title: "The 3 things to fix first", findings_total_label: "findings, by impact",
+    basis_label: "Basis", fix_label: "Fix",
     findings: [
-      { sev: "High", k: "miss", dim: "Clarity", title: "\"Responsible / assisted\" appears 6×", body: "These hide what you did. Replace each with a measurable verb — led / designed / shipped / A/B-tested / cut.", affected: "Affects 3 bullets" },
-      { sev: "High", k: "miss", dim: "JD Fit", title: "SQL & experiments — both missing", body: "Both are called out in the JD's requirements but never appear in the resume. Even one course project would close the gap.", affected: "Match −14 pts" },
-      { sev: "Med", k: "weak", dim: "STAR · Result", title: "\"Well-received\" / \"grew\" — not a result", body: "A result without a number is not a result. Add a percentage, an absolute value, or a baseline — any one.", affected: "Affects 4 bullets" }],
+      { sev: "High", k: "miss", dim: "Clarity", basis: "Harvard·MIT · strong verbs", title: "\"Responsible / assisted\" appears 6×", body: "These hide what you did. Replace each with a measurable verb — led / designed / shipped / A/B-tested / cut.", fix: "Swap each \"responsible/assisted\" for a strong verb + a number, e.g. \"led 3 onboarding events, +11% 7-day retention\".", affected: "Affects 3 bullets" },
+      { sev: "High", k: "miss", dim: "JD Fit", basis: "Job-skills DB · hard-skill gap", title: "SQL & experiments — both missing", body: "Both are called out in the JD's requirements but never appear in the resume. Even one course project would close the gap.", fix: "Add one data course/project showing what you did with SQL and which dashboard you built — put the named hard skill on paper.", affected: "Match −14 pts" },
+      { sev: "Med", k: "weak", dim: "STAR · Result", basis: "Employer prefs · quantified, results-first", title: "\"Well-received\" / \"grew\" — not a result", body: "A result without a number is not a result. Add a percentage, an absolute value, or a baseline — any one.", fix: "Add a measurable Result to each bullet — retention/conversion/efficiency/scale, e.g. \"870 → 1.4k reads\".", affected: "Affects 4 bullets" }],
     rewrites_title: "Top 3 highest-impact line rewrites", rewrites_count_label: "12 total · showing 3",
     before_label: "Before", after_label: "After",
     rewrites: [
