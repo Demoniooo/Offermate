@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OfferMate — 简历诊断</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FFFFFF; --paper-2:#F6F6F4; --card:#FFFFFF; --card-soft:#FAFAF8;
+  --ink:#1F1F1F; --ink-2:#3E3E3C; --ink-3:#52524F; --mute:#71716D; --faint:#A6A6A2;
+  --line:#EBEBE8; --line-2:#E7E7E4; --line-3:#D8D8D4;
+  --green:#1F1F1F; --green-deep:#000000; --mint:#E4F222; --green-bg:#F7FAD9; --green-bd:#DCE85A;
+  --amber:#8A6A1F; --amber-bg:#F8F1DE; --amber-bd:#EBDCAE;
+  --orange:#B8401F; --orange-bg:#FBE9E2; --orange-bd:#EFC7B6;
+  --sans:'Inter','MiSans','PingFang SC','HarmonyOS Sans SC','Microsoft YaHei',system-ui,sans-serif;
+  --mono:'Inter','MiSans','PingFang SC',system-ui,sans-serif;
+  --shadow-card:0 1px 0 rgba(0,0,0,.02),0 24px 48px -32px rgba(31,31,31,.16);
+}
+*{box-sizing:border-box}
+::selection{background:#E4F222;color:#1F1F1F}
+html,body{margin:0;padding:0}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:4px}
+[hidden]{display:none!important}
+.wrap{margin:0 auto;padding-left:32px;padding-right:32px}
+.eyebrow{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--green);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.mono{font-family:var(--mono)}
+@keyframes om-pulse{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes om-spin{to{transform:rotate(360deg)}}
+@keyframes om-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.appear{animation:om-up .5s ease both}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- 工具栏 NAV ---------- */
+nav{position:sticky;top:0;z-index:50;background:rgba(247,245,239,.92);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1140px;display:flex;align-items:center;gap:18px;padding-top:12px;padding-bottom:12px}
+.brand{display:flex;align-items:center;gap:9px}
+.brand b{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.tool-label{font-family:var(--mono);font-size:11.5px;color:var(--mute);padding-left:16px;border-left:1px solid var(--line-3)}
+.steps{margin:0 auto;display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:500;color:var(--faint)}
+.stp{display:flex;align-items:center;gap:7px}
+.stp i{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line-3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10.5px;font-style:normal}
+.stp.on{color:var(--ink)}
+.stp.on i{background:var(--ink);border-color:var(--ink);color:var(--mint)}
+.stp-line{width:26px;height:1px;background:var(--line-3)}
+.lang{display:flex;align-items:center;gap:4px;padding:3px;background:#EFEBDF;border:1px solid #E0DBCB;border-radius:999px;font-size:12px}
+.lang button{padding:4px 10px;border:none;border-radius:999px;background:transparent;color:var(--mute);font-weight:600}
+.lang button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(31,31,31,.08)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:10px;font-weight:600;border:1px solid transparent;transition:transform .15s,box-shadow .15s,background .15s,border-color .15s,opacity .15s}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--green);color:#fff;box-shadow:0 8px 20px -10px rgba(31,31,31,.18)}
+.btn-primary:hover{background:var(--green-deep)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn-ghost{background:#fff;color:var(--ink);border-color:var(--line-3)}
+.btn-ghost:hover{border-color:var(--ink)}
+.btn-sm{padding:8px 14px;font-size:13px}
+.btn-lg{padding:12px 20px;font-size:14.5px}
+
+/* ---------- STEP 01 输入 ---------- */
+#phase-input .wrap{max-width:1080px;padding-top:56px;padding-bottom:90px}
+.in-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:26px;flex-wrap:wrap}
+.in-head h1{margin:0;font-size:clamp(26px,3.2vw,34px);font-weight:600;letter-spacing:-.02em;line-height:1.2}
+.in-head p{margin:10px 0 0;max-width:620px;font-size:14.5px;line-height:1.6;color:var(--ink-3)}
+.input-card{background:var(--card);border:1px solid var(--line-2);border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden}
+.input-grid{display:grid;grid-template-columns:1.35fr 1fr}
+.field{padding:22px 24px}
+.field + .field{border-left:1px solid var(--line)}
+.f-label{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.f-label .num{width:20px;height:20px;border-radius:6px;background:var(--ink);color:var(--mint);font-family:var(--mono);font-size:11px;display:flex;align-items:center;justify-content:center}
+.f-label b{font-size:14px;font-weight:600}
+.tagx{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2.5px 7px;border-radius:999px;border:1px solid}
+.tagx.req{color:var(--orange);background:var(--orange-bg);border-color:var(--orange-bd)}
+.tagx.opt{color:var(--mute);background:var(--paper-2);border-color:var(--line-3)}
+.count{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+textarea{width:100%;border:1px solid var(--line-3);border-radius:10px;background:var(--card-soft);padding:13px 14px;font-family:var(--sans);font-size:13.5px;line-height:1.6;color:var(--ink);resize:vertical;transition:border-color .15s,box-shadow .15s}
+textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(31,31,31,.12);background:#fff}
+textarea::placeholder{color:var(--faint)}
+#resume{min-height:300px}
+#jd{min-height:178px}
+.tips{display:flex;gap:14px;margin-top:10px;font-size:12px;color:var(--mute);flex-wrap:wrap}
+.tips span{display:inline-flex;align-items:center;gap:5px}
+.opts-label{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--mute);margin:18px 0 10px}
+.opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card-soft);cursor:pointer;user-select:none}
+.opt + .opt{margin-top:8px}
+.opt input{accent-color:var(--green);width:15px;height:15px;cursor:pointer}
+.opt b{font-size:13px;font-weight:600}
+.opt span{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.input-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 24px;border-top:1px solid var(--line);background:var(--card-soft);flex-wrap:wrap}
+.privacy{display:flex;gap:14px;font-size:12px;color:var(--mute);flex-wrap:wrap}
+.privacy span{display:inline-flex;align-items:center;gap:5px}
+.perks{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+.perk{background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.perk b{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--green);margin-bottom:6px}
+.perk p{margin:0;font-size:12.5px;line-height:1.6;color:var(--ink-3)}
+
+/* ---------- LOADING ---------- */
+#phase-loading .wrap{max-width:680px;padding-top:96px;padding-bottom:120px}
+.load-card{background:var(--card);border:1px solid var(--line-2);border-radius:16px;box-shadow:var(--shadow-card);padding:36px 36px 24px;text-align:center}
+.spinner{width:38px;height:38px;border-radius:50%;border:3px solid var(--green-bg);border-top-color:var(--green);margin:0 auto 18px;animation:om-spin 1s linear infinite}
+.load-card h2{margin:0;font-size:21px;font-weight:600}
+.load-card .sub{margin:8px 0 0;font-size:13.5px;color:var(--ink-3)}
+.load-steps{margin:26px 0 0;text-align:left;display:flex;flex-direction:column;gap:0}
+.lstep{display:flex;align-items:center;gap:12px;padding:11px 4px;border-top:1px dashed var(--line)}
+.lstep .ic{flex:none;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:1.5px solid var(--line-3);color:transparent}
+.lstep b{font-size:13.5px;font-weight:600;color:var(--faint)}
+.lstep span{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.lstep.done .ic{background:var(--green-bg);border-color:var(--green-bd);color:var(--green)}
+.lstep.done b{color:var(--ink-2)}
+.lstep.active .ic{border-color:var(--green);position:relative}
+.lstep.active .ic::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--green);animation:om-pulse 1s infinite}
+.lstep.active b{color:var(--ink)}
+.load-foot{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11.5px;color:var(--mute)}
+.load-foot a{color:var(--ink-3);text-decoration:underline;cursor:pointer}
+
+/* ---------- REPORT ---------- */
+#phase-report .wrap{max-width:1140px;padding-top:40px;padding-bottom:80px}
+.rep-bar{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:26px;flex-wrap:wrap}
+.rep-bar h1{margin:0;font-size:clamp(26px,3.2vw,36px);font-weight:600;letter-spacing:-.02em;line-height:1.2}
+.rep-meta{margin-top:8px;display:flex;gap:12px;font-family:var(--mono);font-size:12px;color:var(--mute);flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--line-2);border-radius:16px;padding:30px;box-shadow:var(--shadow-card)}
+.sum-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:36px;align-items:center}
+.big-score{display:flex;align-items:baseline;gap:4px;margin-top:4px}
+.big-score b{font-family:var(--mono);font-size:92px;font-weight:500;color:var(--green);line-height:1;letter-spacing:-.04em}
+.big-score span{font-family:var(--mono);font-size:22px;color:var(--faint)}
+.level{margin-top:12px;display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:999px;font-size:12.5px;font-weight:600;color:var(--green)}
+.level i{width:6px;height:6px;background:var(--green);border-radius:50%}
+.blurb{margin:18px 0 0;font-size:14.5px;line-height:1.65;color:var(--ink-2);max-width:400px}
+.kpis{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:400px}
+.kpi{padding:12px 14px;border-radius:10px;border:1px solid}
+.kpi.warn{background:var(--amber-bg);border-color:var(--amber-bd);color:var(--amber)}
+.kpi.ok{background:var(--green-bg);border-color:var(--green-bd);color:var(--green)}
+.kpi small{display:block;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.kpi b{font-family:var(--mono);font-size:24px;font-weight:500}
+.kpi span{font-size:11.5px;margin-left:3px}
+.sum-right{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center}
+.radar text{font-family:var(--sans);font-size:13px;font-weight:500;fill:var(--ink)}
+.radar .grid{fill:none;stroke:var(--line);stroke-width:1}
+.radar .shape{fill:var(--mint);fill-opacity:.45;stroke:var(--ink);stroke-width:1.8;stroke-linejoin:round}
+.radar circle{fill:var(--green)}
+.dim-rows{display:flex;flex-direction:column;gap:13px}
+.dim-row .t{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.dim-row .t b{font-size:13px;font-weight:500;color:var(--ink-2)}
+.dim-row .t span{font-family:var(--mono);font-size:12px;font-weight:600}
+.bar{height:6px;background:#EFEBDF;border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;width:0;transition:width .9s cubic-bezier(.2,.7,.2,1) .15s}
+.shown .bar i{width:var(--w)}
+.dim-note{margin-top:4px;font-size:11.5px;color:var(--mute)}
+
+.sec-row{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:54px 0 20px;flex-wrap:wrap}
+.sec-row h2{margin:0;font-size:24px;font-weight:600;letter-spacing:-.015em}
+.sec-row .right{font-family:var(--mono);font-size:12px;color:var(--mute)}
+.sec-row .num{font-family:var(--mono);font-size:12px;color:var(--green);margin-right:10px}
+
+.findings{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.finding{background:var(--card);border:1px solid var(--line-2);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.find-top{display:flex;align-items:center;gap:8px}
+.sev{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;padding:3px 8px;border-radius:999px;border:1px solid}
+.find-top span{font-family:var(--mono);font-size:11px;color:var(--mute);margin-left:auto}
+.finding h3{margin:0;font-size:15.5px;font-weight:600;line-height:1.4}
+.finding p{margin:0;font-size:13px;line-height:1.6;color:var(--ink-3)}
+.affected{margin-top:auto;font-family:var(--mono);font-size:11px;color:var(--mute);padding-top:10px;border-top:1px dashed var(--line)}
+
+.rw{background:var(--card);border:1px solid var(--line-2);border-radius:14px;overflow:hidden}
+.rw + .rw{margin-top:12px}
+.rw-head{display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--card-soft);border-bottom:1px solid var(--line);font-size:12.5px;flex-wrap:wrap}
+.rw-head .id{font-family:var(--mono);font-weight:600;color:var(--green)}
+.rw-head .sec{color:var(--ink-2);font-weight:500}
+.rw-head .tag{font-family:var(--mono);font-size:10.5px;color:var(--mute);padding:2px 8px;border:1px solid var(--line-3);border-radius:999px}
+.rw-head .imp{margin-left:auto;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--green)}
+.rw-grid{display:grid;grid-template-columns:1fr 1fr}
+.rw-cell{padding:16px 18px}
+.rw-cell + .rw-cell{border-left:1px solid var(--line)}
+.rw-cell small{display:block;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px}
+.rw-cell.before small{color:var(--orange)}
+.rw-cell.after{background:#FCFDF4}
+.rw-cell.after small{color:var(--green)}
+.rw-cell p{margin:0;font-size:13.5px;line-height:1.6;color:var(--ink-2)}
+.rw-cell.after p{color:#3F4708}
+.mini-chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.mini-chips span{font-family:var(--mono);font-size:10px;font-weight:600;padding:2.5px 8px;border-radius:999px;border:1px solid}
+.mc-issue{color:var(--orange);background:var(--orange-bg);border-color:var(--orange-bd)}
+.mc-win{color:var(--green);background:var(--green-bg);border-color:var(--green-bd)}
+
+.match-row{display:flex;align-items:baseline;gap:8px}
+.match-row b{font-family:var(--mono);font-size:26px;color:var(--green)}
+.buckets{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.bucket{background:var(--card);border:1px solid var(--line-2);border-radius:14px;padding:18px}
+.bucket-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.bucket-h b{font-size:14px;font-weight:600}
+.bucket-h span{font-family:var(--mono);font-size:11.5px;color:var(--mute)}
+.bk-chips{display:flex;flex-wrap:wrap;gap:7px}
+.bk-chips span{font-size:12px;font-weight:500;padding:5px 11px;border-radius:999px;border:1px solid}
+.recommend{margin-top:14px;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:14px;padding:18px 20px}
+.recommend b{display:block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);margin-bottom:7px}
+.recommend p{margin:0;font-size:13.5px;line-height:1.7;color:#6B5414}
+
+.next{margin-top:56px;background:var(--ink);color:#F2F4F6;border-radius:18px;padding:40px 44px;display:flex;align-items:center;gap:32px;flex-wrap:wrap}
+.next .eyebrow{color:var(--mint);margin-bottom:8px}
+.next h2{margin:0;font-size:24px;font-weight:600;letter-spacing:-.015em;max-width:520px}
+.next p{margin:10px 0 0;font-size:13.5px;line-height:1.65;color:#B9C2CC;max-width:520px}
+.next-btns{margin-left:auto;display:flex;flex-direction:column;gap:10px}
+.next .btn-primary{background:var(--mint);color:var(--ink);box-shadow:none}
+.next .btn-primary:hover{background:#92E0BE}
+.next .btn-ghost{background:transparent;color:#F2F4F6;border-color:#3A4A5A}
+.next .btn-ghost:hover{border-color:var(--mint)}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;font-size:13px;padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:99;box-shadow:0 14px 30px -10px rgba(31,31,31,.5)}
+#toast.show{opacity:1;transform:translateX(-50%)}
+
+/* ---------- 响应式 ---------- */
+@media (max-width:980px){
+  .steps{display:none}
+  .input-grid{grid-template-columns:1fr}
+  .field + .field{border-left:none;border-top:1px solid var(--line)}
+  .sum-grid{grid-template-columns:1fr}
+  .findings,.buckets{grid-template-columns:1fr}
+  .perks{grid-template-columns:1fr}
+  .rw-grid{grid-template-columns:1fr}
+  .rw-cell + .rw-cell{border-left:none;border-top:1px solid var(--line)}
+  .next{padding:32px 26px}
+  .next-btns{margin-left:0;flex-direction:row;flex-wrap:wrap}
+}
+@media (max-width:680px){
+  .wrap{padding-left:20px;padding-right:20px}
+  .tool-label{display:none}
+  .sum-right{grid-template-columns:1fr}
+}
+/* ---------- 打印（导出 PDF）---------- */
+@media print{
+  nav,#phase-input,#phase-loading,.next,.rep-bar .btns,#toast{display:none!important}
+  body{background:#fff}
+  .card,.finding,.rw,.bucket{box-shadow:none;break-inside:avoid}
+  #phase-report .wrap{padding-top:0}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="OfferMate_Landing.html" aria-label="OfferMate 首页">
+      <svg width="26" height="26" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#1F1F1F"/><circle cx="13" cy="15" r="6.2" fill="none" stroke="#FFF" stroke-width="1.6"/><path d="M 9.5 18.5 L 20 8 M 20 8 L 14.5 8 M 20 8 L 20 13.5" stroke="#E4F222" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <b>OfferMate</b>
+    </a>
+    <span class="tool-label" data-i18n="tool_label"></span>
+    <div class="steps" aria-hidden="true">
+      <span class="stp on" id="stp1"><i>1</i><span data-i18n="step1_label"></span></span>
+      <span class="stp-line"></span>
+      <span class="stp" id="stp2"><i>2</i><span data-i18n="step2_label"></span></span>
+      <span class="stp-line"></span>
+      <span class="stp"><i>3</i><span data-i18n="step3_label"></span></span>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button id="zhBtn" class="on" onclick="setLang('zh')">中文</button>
+      <button id="enBtn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ PHASE: INPUT ============ -->
+<section id="phase-input">
+  <div class="wrap">
+    <div class="in-head">
+      <div>
+        <div class="eyebrow" data-i18n="input_eyebrow"></div>
+        <h1 data-i18n="input_title"></h1>
+        <p data-i18n="input_sub"></p>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="loadSample(false)"><span data-i18n="load_sample_btn"></span> ↓</button>
+    </div>
+
+    <div class="input-card">
+      <div class="input-grid">
+        <div class="field">
+          <div class="f-label">
+            <span class="num">1</span><b data-i18n="resume_field_label"></b>
+            <span class="tagx req" data-i18n="required_tag"></span>
+            <span class="count" id="resumeCount">0</span>
+          </div>
+          <textarea id="resume" oninput="onResumeInput()"></textarea>
+          <div class="tips">
+            <span>ⓘ <span data-i18n="tip_1"></span></span>
+            <span>· <span data-i18n="tip_2"></span></span>
+          </div>
+        </div>
+        <div class="field">
+          <div class="f-label">
+            <span class="num">2</span><b data-i18n="jd_field_label"></b>
+            <span class="tagx opt" data-i18n="optional_tag"></span>
+          </div>
+          <textarea id="jd"></textarea>
+          <div class="opts-label" data-i18n="options_label"></div>
+          <label class="opt"><input type="checkbox" id="optPressure"><b data-i18n="opt_pressure"></b><span data-i18n="opt_pressure_meta"></span></label>
+          <label class="opt"><input type="checkbox" id="optAnon" checked><b data-i18n="opt_anon"></b><span data-i18n="opt_anon_meta"></span></label>
+        </div>
+      </div>
+      <div class="input-foot">
+        <div class="privacy">
+          <span>✓ <span data-i18n="privacy_1"></span></span>
+          <span>· <span data-i18n="privacy_2"></span></span>
+          <span>· <span data-i18n="privacy_3"></span></span>
+        </div>
+        <button class="btn btn-primary btn-lg" id="genBtn" onclick="runDiagnosis()" disabled><span data-i18n="generate_btn"></span> →</button>
+      </div>
+    </div>
+
+    <div class="perks" id="perks"></div>
+  </div>
+</section>
+
+<!-- ============ PHASE: LOADING ============ -->
+<section id="phase-loading" hidden>
+  <div class="wrap">
+    <div class="load-card appear">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="eyebrow" style="margin-bottom:8px" data-i18n="loading_eyebrow"></div>
+      <h2 data-i18n="loading_title"></h2>
+      <p class="sub" data-i18n="loading_sub"></p>
+      <div class="load-steps" id="loadSteps"></div>
+      <div class="load-foot">
+        <span data-i18n="loading_footer_label"></span>
+        <a onclick="cancelDiagnosis()" data-i18n="cancel_btn"></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PHASE: REPORT ============ -->
+<section id="phase-report" hidden>
+  <div class="wrap">
+
+    <div class="rep-bar">
+      <div>
+        <div class="eyebrow" data-i18n="report_eyebrow"></div>
+        <h1 data-i18n="report_title"></h1>
+        <div class="rep-meta">
+          <span data-i18n="report_meta_1"></span><span>·</span>
+          <span data-i18n="report_meta_2"></span><span>·</span>
+          <span data-i18n="report_meta_3"></span>
+        </div>
+      </div>
+      <div class="btns" style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="backToInput()">← <span data-i18n="edit_btn"></span></button>
+        <button class="btn btn-ghost btn-sm" onclick="window.print()" data-i18n="export_btn"></button>
+      </div>
+    </div>
+
+    <!-- 总览 -->
+    <div class="card" id="sumCard">
+      <div class="sum-grid">
+        <div>
+          <div class="eyebrow" style="margin-bottom:2px;color:var(--mute)" data-i18n="overall_label"></div>
+          <div class="big-score"><b id="bigScore">0</b><span>/100</span></div>
+          <div class="level"><i></i><span data-i18n="level_tag"></span></div>
+          <p class="blurb" data-i18n="summary_blurb"></p>
+          <div class="kpis">
+            <div class="kpi warn"><small data-i18n="kpi_findings"></small><b>7</b><span data-i18n="items_unit"></span></div>
+            <div class="kpi ok"><small data-i18n="kpi_rewrites"></small><b>12</b><span data-i18n="items_unit"></span></div>
+          </div>
+        </div>
+        <div class="sum-right">
+          <svg class="radar" viewBox="0 0 320 320" aria-hidden="true">
+            <polygon class="grid" points="160,50 264.62,126.01 224.68,248.99 95.32,248.99 55.38,126.01"/>
+            <polygon class="grid" points="160,77.5 238.46,134.51 208.51,226.74 111.49,226.74 81.54,134.51"/>
+            <polygon class="grid" points="160,105 212.31,143 192.34,204.5 127.66,204.5 107.69,143"/>
+            <polygon class="grid" points="160,132.5 186.15,151.5 176.17,182.25 143.83,182.25 133.85,151.5"/>
+            <line class="grid" x1="160" y1="160" x2="160" y2="50"/><line class="grid" x1="160" y1="160" x2="264.62" y2="126.01"/><line class="grid" x1="160" y1="160" x2="224.68" y2="248.99"/><line class="grid" x1="160" y1="160" x2="95.32" y2="248.99"/><line class="grid" x1="160" y1="160" x2="55.38" y2="126.01"/>
+            <polygon class="shape" points="160,74.2 245.77,132.13 205.92,223.18 105.02,235.64 80.5,134.17"/>
+            <circle cx="160" cy="74.2" r="3.5"/><circle cx="245.77" cy="132.13" r="3.5"/><circle cx="205.92" cy="223.18" r="3.5"/><circle cx="105.02" cy="235.64" r="3.5"/><circle cx="80.5" cy="134.17" r="3.5"/>
+            <text x="160" y="36" text-anchor="middle" data-i18n="dim_1"></text>
+            <text x="288" y="122" text-anchor="middle" data-i18n="dim_2"></text>
+            <text x="232" y="274" text-anchor="middle" data-i18n="dim_3"></text>
+            <text x="88" y="274" text-anchor="middle" data-i18n="dim_4"></text>
+            <text x="34" y="122" text-anchor="middle" data-i18n="dim_5"></text>
+          </svg>
+          <div class="dim-rows" id="dimRows"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 关键发现 -->
+    <div class="sec-row">
+      <h2><span class="num">02 · </span><span data-i18n="findings_title"></span></h2>
+      <span class="right">7 <span data-i18n="findings_total_label"></span></span>
+    </div>
+    <div class="findings" id="findings"></div>
+
+    <!-- 改写示例 -->
+    <div class="sec-row">
+      <h2><span class="num">03 · </span><span data-i18n="rewrites_title"></span></h2>
+      <span class="right" data-i18n="rewrites_count_label"></span>
+    </div>
+    <div id="rewrites"></div>
+
+    <!-- JD 匹配 -->
+    <div class="sec-row">
+      <h2><span class="num">04 · </span><span data-i18n="jd_match_title"></span></h2>
+      <span class="right match-row"><span data-i18n="match_label"></span><b>68%</b></span>
+    </div>
+    <div class="buckets" id="buckets"></div>
+    <div class="recommend"><b data-i18n="recommend_label"></b><p data-i18n="recommend_body"></p></div>
+
+    <!-- 下一步 -->
+    <div class="next">
+      <div>
+        <div class="eyebrow" data-i18n="next_eyebrow"></div>
+        <h2 data-i18n="next_title"></h2>
+        <p data-i18n="next_sub"></p>
+      </div>
+      <div class="next-btns">
+        <button class="btn btn-primary btn-lg" onclick="toast()"><span data-i18n="next_btn_primary"></span> →</button>
+        <button class="btn btn-ghost btn-lg" onclick="backToInput()" data-i18n="next_btn_secondary"></button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div id="toast" role="status"></div>
+
+<script>
+const I18N = {
+zh:{
+  tool_label:'简历诊断 · 体验',step1_label:'诊断',step2_label:'复盘',step3_label:'模拟面试',
+  input_eyebrow:'STEP 01 · 简历诊断',
+  input_title:'把简历粘进来，看见 HR 怎么看你。',
+  input_sub:'校招 HR 视角逐条点评。粘贴简历（必填）；加上目标岗位 JD 还会出匹配分析。预计 30–60 秒出报告。',
+  load_sample_btn:'用样例简历',
+  resume_field_label:'简历内容',required_tag:'必填',count_unit:'字符',
+  resume_placeholder:'把简历正文粘贴到这里。\n\n建议包含：教育、实习、项目、技能，每条都写清楚做了什么、用什么方法、结果是什么。\n\n不要附件、不要图，纯文字就行。',
+  tip_1:'不要附件，纯文字效果最好',tip_2:'推荐 600–1500 字',
+  jd_field_label:'目标岗位 JD',optional_tag:'可选',
+  jd_placeholder:'粘贴目标岗位的 JD 描述。\n\n包含「职责」「要求」最佳。\n\n不填也可以，只是不会出 JD 匹配分析。',
+  options_label:'诊断选项',
+  opt_pressure:'压力面模式',opt_pressure_meta:'模拟面试时启用',
+  opt_anon:'本地脱敏',opt_anon_meta:'自动遮蔽姓名 / 联系方式',
+  privacy_1:'不存储简历内容',privacy_2:'不收集邮箱',privacy_3:'关闭页面即销毁',
+  generate_btn:'生成诊断报告',
+  perks:[
+    {tag:'怎么用',text:'把简历从 Word / PDF 选中复制，粘贴到左侧框。我们只读文字，不读格式。'},
+    {tag:'想加分',text:'右侧贴一份目标岗位 JD，会额外给一份匹配度分析和定向改写建议。'},
+    {tag:'隐私',text:'所有内容在浏览器里处理。报告生成后，简历不会存在我们任何一台服务器上。'}],
+  loading_eyebrow:'生成中',loading_title:'让一位校招 HR 帮你看完简历……',loading_sub:'预计 30–60 秒。可以离开这个页面去倒杯水。',
+  loading_steps:[
+    {label:'解析简历结构',meta:'提取段落 / 经历'},
+    {label:'分维度打分',meta:'12 个评估维度'},
+    {label:'对比 JD 关键词',meta:'硬技能 / 软偏好 / 隐性词'},
+    {label:'生成 HR 视角点评',meta:'STAR 法则改写'}],
+  loading_footer_label:'通常 < 60 秒',cancel_btn:'取消',
+  report_eyebrow:'STEP 02 · 诊断报告',report_title:'简历诊断报告',
+  report_meta_1:'产品运营实习 · 字节跳动',report_meta_2:'生成于 2026.06.11 11:42',report_meta_3:'Demo · 模拟数据',
+  edit_btn:'修改简历重新诊断',export_btn:'导出 PDF',
+  overall_label:'总分',level_tag:'良好 · 距离 90 还差 12 个改动',
+  summary_blurb:'整体结构清晰、案例选材合理。主要扣分在「JD 匹配」与「表达」上——大量"负责/协助"动词、缺数字结果；以及与目标岗位的硬技能差（SQL、A/B 实验）写得不明显。',
+  kpi_findings:'待修改项',kpi_rewrites:'改写示例',items_unit:'条',
+  dim_1:'表达',dim_2:'逻辑',dim_3:'岗位匹配',dim_4:'案例',dim_5:'结构',
+  dim_rows:[
+    {label:'表达',score:78,c:'#1F1F1F',note:'动词偏弱，可量化空间大'},
+    {label:'逻辑',score:82,c:'#1F1F1F',note:'时间线、因果关系清楚'},
+    {label:'岗位匹配',score:71,c:'#9A7A1A',note:'SQL 与实验方法学未体现'},
+    {label:'案例质量',score:85,c:'#1F1F1F',note:'选材好，故事尚可挖深'},
+    {label:'STAR 结构',score:76,c:'#9A7A1A',note:'Result 经常省略'}],
+  findings_title:'最先要动的 3 件事',findings_total_label:'项发现，按影响力排序',
+  findings:[
+    {sev:'高',k:'miss',dim:'表达',title:'"负责 / 协助"出现 6 次，等于没写',body:'看不出你"做了什么"。每一条都换成可量化、可观察的动作：主导 / 设计 / 拆解 / 上线 / A/B 测试……',affected:'影响 3 条经历'},
+    {sev:'高',k:'miss',dim:'岗位匹配',title:'JD 里的 SQL / 实验方法学没出现',body:'岗位要求里点名的硬技能，简历里完全没提。即使学过，也写一条数据课程项目证明会用。',affected:'匹配度 −14 分'},
+    {sev:'中',k:'weak',dim:'STAR · 结果',title:'"反响良好""有所增长"——结果不可信',body:'没有数字的结果不算结果。补一个百分比、一个绝对值，或一个对照——任何一个都行。',affected:'影响 4 条经历'}],
+  rewrites_title:'逐条改写，选 3 个最高影响的来看',rewrites_count_label:'共 12 条 · 显示 3',
+  before_label:'原文',after_label:'改后',
+  rewrites:[
+    {id:'R-01',sec:'实习 · 互联网公司',tag:'运营实习生',imp:'+18 分',
+     before:'负责日常运营工作，协助团队完成各项任务',
+     after:'主导 3 场新人引导活动（日均触达 2.4k 用户），通过 A/B 优化文案使 7 日留存提升 11%',
+     issues:['动词无力','无结果'],wins:['量化结果','方法学','JD 关键词']},
+    {id:'R-02',sec:'实习 · 互联网公司',tag:'运营实习生',imp:'+12 分',
+     before:'撰写文案，提升用户体验',
+     after:'为新人引导落地页撰写 4 版文案，通过 1500 用户 A/B 测试，挑选转化最高一版上线（CTR 6.8% → 9.1%）',
+     issues:['抽象','无数字'],wins:['过程清楚','前后对比']},
+    {id:'R-03',sec:'校园 · 新媒体部',tag:'内容负责人',imp:'+9 分',
+     before:'管理学生会公众号日常运营，粉丝有所增长',
+     after:'运营学生会公众号（粉丝 1.2k → 3.4k，6 个月），策划 12 期专栏内容，平均阅读量 870',
+     issues:['模糊增长'],wins:['时间区间','绝对数字']}],
+  jd_match_title:'目标岗位：产品运营 · 字节跳动',match_label:'总匹配度',
+  buckets:[
+    {title:'硬性能力',hits:3,total:5,items:[['数据分析','ok'],['用户增长','ok'],['A/B 实验','weak'],['SQL','miss'],['数据看板','miss']]},
+    {title:'软性偏好',hits:3,total:4,items:[['沟通能力','ok'],['推动力','ok'],['跨部门协作','ok'],['抗压能力','weak']]},
+    {title:'隐性关键词',hits:2,total:4,items:[['达人/商家','miss'],['运营 SOP','miss'],['电商','weak'],['社区运营','ok']]}],
+  recommend_label:'建议',
+  recommend_body:'优先补两件事：(1) 把已有的"运营实习"细节往「数据 / 实验 / SQL」上靠，即便只是 Excel，也写出"用 XX 维度拆解 → 找到 XX 机会 → 验证"的链路；(2) 加一条课程 / 项目证明你用过 SQL——数据库课、实习里跑过的查询都算。',
+  next_eyebrow:'STEP 03',
+  next_title:'改完简历，马上拿到字节这个岗位的模拟面试',
+  next_sub:'8–10 道题、压力面追问，基于这份简历 + JD 生成。面完会拿到一份和这份对比格式相同的复盘报告。',
+  next_btn_primary:'开始模拟面试',next_btn_secondary:'先回去改简历',
+  toast_msg:'模拟面试在 MVP 第 2 周上线——敬请期待',
+  sample_resume:`王同学  ·  中国人民大学 信息管理 大三
+hi@example.com  ·  13800000000
+
+教育背景
+中国人民大学  ·  信息管理与信息系统  ·  2022.09–2026.06
+GPA 3.6/4.0  ·  数据库系统 / 统计学 / 用户研究 课程优秀
+
+实习经历
+某互联网公司  ·  产品运营实习生  ·  2024.06–2024.09
+- 负责日常运营工作，协助团队完成各项任务
+- 参与社区活动策划与执行，完成上级安排的工作
+- 撰写文案，提升用户体验
+
+校园项目
+学生会新媒体部  ·  内容负责人  ·  2023.09–至今
+- 管理学生会公众号日常运营，粉丝有所增长
+- 组织线下活动，反响良好
+
+技能
+熟练使用 Excel、PPT；了解 Python 基础；英语 CET-6`,
+  sample_jd:`产品运营实习生  ·  字节跳动  ·  抖音电商
+
+岗位职责
+- 负责达人/商家侧的运营策略落地与效果跟踪
+- 通过数据分析定位增长机会，设计 A/B 实验
+- 撰写运营 SOP 与培训材料，协作业务、产品、数据
+
+任职要求
+- 重点院校大三/大四在读
+- 熟悉 SQL，具备基础数据分析能力
+- 有用户增长 / 社区运营相关项目经历
+- 沟通能力强，推动力强`
+},
+en:{
+  tool_label:'Resume diagnosis · demo',step1_label:'Diagnose',step2_label:'Debrief',step3_label:'Mock interview',
+  input_eyebrow:'STEP 01 · Resume diagnosis',
+  input_title:'Paste your resume. See what an HR sees.',
+  input_sub:'Reviewed like a campus recruiter would. Paste your resume (required); add a JD for fit analysis too. ~30–60s to a full report.',
+  load_sample_btn:'Use sample',
+  resume_field_label:'Resume',required_tag:'required',count_unit:'chars',
+  resume_placeholder:'Paste resume body here.\n\nInclude education, internships, projects, skills. For every bullet, say what you did, how, and the result.\n\nNo attachments, no images — plain text only.',
+  tip_1:'No attachments, plain text works best',tip_2:'600–1500 chars recommended',
+  jd_field_label:'Target JD',optional_tag:'optional',
+  jd_placeholder:'Paste the target JD here.\n\n"Responsibilities" + "Requirements" works best.\n\nLeave empty if you just want the resume scored alone.',
+  options_label:'Options',
+  opt_pressure:'Pressure mode',opt_pressure_meta:'used in mock interview',
+  opt_anon:'Anonymize locally',opt_anon_meta:'masks name / contact',
+  privacy_1:'Resume never stored',privacy_2:'No email collected',privacy_3:"Close the tab — it's gone",
+  generate_btn:'Generate report',
+  perks:[
+    {tag:'How',text:'Select-all your resume in Word or PDF and paste into the left box. We read text only, ignore formatting.'},
+    {tag:'Bonus',text:'Paste a JD on the right and you also get a match analysis with targeted rewrite suggestions.'},
+    {tag:'Privacy',text:'Everything is processed in your browser session. Once the report is shown, the resume is not persisted on any of our servers.'}],
+  loading_eyebrow:'Working',loading_title:'A campus recruiter is reading your resume…',loading_sub:'Estimated 30–60s. Feel free to step away.',
+  loading_steps:[
+    {label:'Parsing resume structure',meta:'sections / experiences'},
+    {label:'Scoring dimensions',meta:'12 dimensions'},
+    {label:'Matching JD keywords',meta:'hard / soft / hidden'},
+    {label:'Writing HR commentary',meta:'STAR rewrites'}],
+  loading_footer_label:'usually < 60s',cancel_btn:'Cancel',
+  report_eyebrow:'STEP 02 · Diagnosis report',report_title:'Resume diagnosis',
+  report_meta_1:'Product Ops Intern · ByteDance',report_meta_2:'Generated 2026.06.11 11:42',report_meta_3:'Demo · mock data',
+  edit_btn:'Edit & re-run',export_btn:'Export PDF',
+  overall_label:'Overall',level_tag:'Good · 12 fixes away from 90',
+  summary_blurb:'Structure and example-choice are solid. Most points are lost on JD fit and clarity — lots of "responsible / assisted" verbs, no numbers in results, and the JD\'s hard skills (SQL, A/B testing) are barely surfaced.',
+  kpi_findings:'To fix',kpi_rewrites:'Rewrites',items_unit:'items',
+  dim_1:'Clarity',dim_2:'Logic',dim_3:'JD Fit',dim_4:'Examples',dim_5:'Structure',
+  dim_rows:[
+    {label:'Clarity',score:78,c:'#1F1F1F',note:'Weak verbs, easy quant wins'},
+    {label:'Logic',score:82,c:'#1F1F1F',note:'Timeline and cause are clear'},
+    {label:'JD Fit',score:71,c:'#9A7A1A',note:'SQL & experiments not shown'},
+    {label:'Examples',score:85,c:'#1F1F1F',note:'Good picks, deeper stories'},
+    {label:'STAR structure',score:76,c:'#9A7A1A',note:'Result is often omitted'}],
+  findings_title:'The 3 things to fix first',findings_total_label:'findings, by impact',
+  findings:[
+    {sev:'High',k:'miss',dim:'Clarity',title:'"Responsible / assisted" appears 6×',body:'These hide what you did. Replace each with a measurable verb — led / designed / shipped / A/B-tested / cut.',affected:'Affects 3 bullets'},
+    {sev:'High',k:'miss',dim:'JD Fit',title:'SQL & experiments — both missing',body:"Both are called out in the JD's requirements but never appear in the resume. Even one course project would close the gap.",affected:'Match −14 pts'},
+    {sev:'Med',k:'weak',dim:'STAR · Result',title:'"Well-received" / "grew" — not a result',body:'A result without a number is not a result. Add a percentage, an absolute value, or a baseline — any one.',affected:'Affects 4 bullets'}],
+  rewrites_title:'Top 3 highest-impact line rewrites',rewrites_count_label:'12 total · showing 3',
+  before_label:'Before',after_label:'After',
+  rewrites:[
+    {id:'R-01',sec:'Intern · Internet Co.',tag:'Ops intern',imp:'+18 pts',
+     before:'Responsible for daily operations, assisted team with various tasks',
+     after:'Led 3 new-user onboarding events (2.4k DAU reach); A/B-tested copy lifted 7-day retention by 11%',
+     issues:['Weak verbs','No result'],wins:['Quantified','Methodology','JD keywords']},
+    {id:'R-02',sec:'Intern · Internet Co.',tag:'Ops intern',imp:'+12 pts',
+     before:'Wrote copy, improved user experience',
+     after:'Drafted 4 copy variants for onboarding LP; A/B-tested with 1.5k users; shipped winner (CTR 6.8% → 9.1%)',
+     issues:['Abstract','No numbers'],wins:['Clear process','Before / after']},
+    {id:'R-03',sec:'Campus · New Media',tag:'Content lead',imp:'+9 pts',
+     before:'Ran the official account, followers grew',
+     after:'Ran council account (1.2k → 3.4k followers, 6mo); designed 12 column series, avg 870 reads',
+     issues:['Vague growth'],wins:['Time range','Absolute numbers']}],
+  jd_match_title:'Target: Product Ops · ByteDance',match_label:'Match',
+  buckets:[
+    {title:'Hard skills',hits:3,total:5,items:[['Data analysis','ok'],['User growth','ok'],['A/B testing','weak'],['SQL','miss'],['Dashboards','miss']]},
+    {title:'Soft signals',hits:3,total:4,items:[['Communication','ok'],['Drive','ok'],['Cross-team','ok'],['Resilience','weak']]},
+    {title:'Hidden keywords',hits:2,total:4,items:[['creators/sellers','miss'],['Ops SOP','miss'],['e-Commerce','weak'],['Community ops','ok']]}],
+  recommend_label:'Recommendation',
+  recommend_body:'Two priorities: (1) Reframe your existing ops internship around data / experiments / SQL — even Excel work counts if you spell out the "split by X → spot Y → validate" chain. (2) Add one course / project showing SQL usage — your DB class or any query you ran during the internship will do.',
+  next_eyebrow:'STEP 03',
+  next_title:'Now drill it: a mock interview for the same role',
+  next_sub:"8–10 questions, 2–3 layers of follow-up, generated from this resume + JD. You'll get a debrief in the same side-by-side format.",
+  next_btn_primary:'Start mock interview',next_btn_secondary:'Back to edit resume',
+  toast_msg:'Mock interview ships in MVP week 2 — stay tuned',
+  sample_resume:`Wang  ·  Renmin University, Information Mgmt, Junior
+hi@example.com  ·  +86 138-0000-0000
+
+EDUCATION
+Renmin University · BSc Information Mgmt · 2022.09–2026.06
+GPA 3.6/4.0 · DB Systems / Statistics / UX Research
+
+EXPERIENCE
+Some Internet Co.  ·  Product Ops Intern  ·  2024.06–2024.09
+- Responsible for daily operations, assisted team with various tasks
+- Participated in community event planning, completed assigned work
+- Wrote copy, improved user experience
+
+CAMPUS PROJECTS
+Student Council New Media · Content Lead · 2023.09–present
+- Ran the council's official account, followers grew
+- Organized offline events, well-received
+
+SKILLS
+Excel, PPT; basic Python; English CET-6`,
+  sample_jd:`Product Ops Intern  ·  ByteDance  ·  Douyin e-Commerce
+
+Responsibilities
+- Drive strategy & impact tracking for creators / merchants
+- Surface growth opportunities via data; design A/B tests
+- Write ops SOPs and training material; partner with biz/product/data
+
+Requirements
+- Tier-1 university, junior / senior
+- SQL, basic data analysis
+- Prior user-growth or community ops project
+- Strong communicator, drives outcomes`
+}};
+
+const COLORS={ok:{bg:'#F7FAD9',bd:'#DCE85A',fg:'#4A5207'},weak:{bg:'#F8F1DE',bd:'#EBDCAE',fg:'#8A6A1F'},miss:{bg:'#FBE9E2',bd:'#EFC7B6',fg:'#B8401F'}};
+let lang='zh', phase='input', loadStep=0, timers=[];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function render(){
+  const t=I18N[lang];
+  document.documentElement.lang = lang==='zh'?'zh-CN':'en';
+  document.title = lang==='zh'?'OfferMate — 简历诊断':'OfferMate — Resume diagnosis';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(typeof t[k]==='string')el.textContent=t[k];});
+  $('zhBtn').classList.toggle('on',lang==='zh');
+  $('enBtn').classList.toggle('on',lang==='en');
+  $('resume').placeholder=t.resume_placeholder;
+  $('jd').placeholder=t.jd_placeholder;
+  onResumeInput();
+
+  $('perks').innerHTML=t.perks.map(p=>`<div class="perk"><b>${esc(p.tag)}</b><p>${esc(p.text)}</p></div>`).join('');
+
+  $('loadSteps').innerHTML=t.loading_steps.map((s,i)=>
+    `<div class="lstep" data-i="${i}"><span class="ic">✓</span><b>${esc(s.label)}</b><span>${esc(s.meta)}</span></div>`).join('');
+  paintLoadSteps();
+
+  $('dimRows').innerHTML=t.dim_rows.map(r=>
+    `<div class="dim-row"><div class="t"><b>${esc(r.label)}</b><span style="color:${r.c}">${r.score} <span style="color:var(--faint);font-weight:400">/100</span></span></div>
+     <div class="bar"><i style="--w:${r.score}%;background:${r.c}"></i></div><div class="dim-note">${esc(r.note)}</div></div>`).join('');
+
+  $('findings').innerHTML=t.findings.map(f=>{const c=COLORS[f.k];
+    return `<div class="finding"><div class="find-top"><span class="sev" style="color:${c.fg};background:${c.bg};border-color:${c.bd}">${esc(f.sev)}</span><span>${esc(f.dim)}</span></div>
+    <h3>${esc(f.title)}</h3><p>${esc(f.body)}</p><div class="affected">${esc(f.affected)}</div></div>`;}).join('');
+
+  $('rewrites').innerHTML=t.rewrites.map(r=>
+    `<div class="rw"><div class="rw-head"><span class="id">${r.id}</span><span class="sec">${esc(r.sec)}</span><span class="tag">${esc(r.tag)}</span><span class="imp">${esc(r.imp)} ↑</span></div>
+     <div class="rw-grid">
+       <div class="rw-cell before"><small>${esc(t.before_label)}</small><p>${esc(r.before)}</p><div class="mini-chips">${r.issues.map(i=>`<span class="mc-issue">${esc(i)}</span>`).join('')}</div></div>
+       <div class="rw-cell after"><small>${esc(t.after_label)}</small><p>${esc(r.after)}</p><div class="mini-chips">${r.wins.map(w=>`<span class="mc-win">${esc(w)}</span>`).join('')}</div></div>
+     </div></div>`).join('');
+
+  $('buckets').innerHTML=t.buckets.map(b=>
+    `<div class="bucket"><div class="bucket-h"><b>${esc(b.title)}</b><span>${b.hits}/${b.total}</span></div>
+     <div class="bk-chips">${b.items.map(([l,k])=>{const c=COLORS[k];return `<span style="color:${c.fg};background:${c.bg};border-color:${c.bd}">${esc(l)}</span>`;}).join('')}</div></div>`).join('');
+}
+
+function onResumeInput(){
+  const t=I18N[lang], v=$('resume').value;
+  $('resumeCount').textContent=`${v.length} ${t.count_unit}`;
+  $('genBtn').disabled = v.trim().length===0;
+}
+
+function loadSample(autoRun){
+  const t=I18N[lang];
+  $('resume').value=t.sample_resume;
+  $('jd').value=t.sample_jd;
+  onResumeInput();
+  if(autoRun) setTimeout(runDiagnosis,80);
+}
+
+function setPhase(p){
+  phase=p;
+  $('phase-input').hidden = p!=='input';
+  $('phase-loading').hidden = p!=='loading';
+  $('phase-report').hidden = p!=='report';
+  $('stp2').classList.toggle('on', p==='report');
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+function paintLoadSteps(){
+  document.querySelectorAll('.lstep').forEach(el=>{
+    const i=+el.dataset.i;
+    el.classList.toggle('done', i<loadStep);
+    el.classList.toggle('active', i===loadStep);
+  });
+}
+
+function runDiagnosis(){
+  loadStep=0; setPhase('loading'); paintLoadSteps();
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const seq = reduced ? [80,160,240,320] : [700,1500,2300,2900];
+  timers=[
+    setTimeout(()=>{loadStep=1;paintLoadSteps();},seq[0]),
+    setTimeout(()=>{loadStep=2;paintLoadSteps();},seq[1]),
+    setTimeout(()=>{loadStep=3;paintLoadSteps();},seq[2]),
+    setTimeout(showReport,seq[3])
+  ];
+}
+
+function cancelDiagnosis(){ timers.forEach(clearTimeout); setPhase('input'); }
+function backToInput(){ setPhase('input'); }
+
+function showReport(){
+  setPhase('report');
+  $('sumCard').classList.remove('shown');
+  // 分数滚动 + 进度条动画
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  requestAnimationFrame(()=>$('sumCard').classList.add('shown'));
+  const el=$('bigScore'), target=86;
+  if(reduced){ el.textContent=target; return; }
+  const t0=performance.now(), dur=850;
+  (function tick(now){
+    const k=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-k,3);
+    el.textContent=Math.round(target*e);
+    if(k<1) requestAnimationFrame(tick);
+  })(t0);
+}
+
+function toast(){
+  const el=$('toast');
+  el.textContent=I18N[lang].toast_msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+function setLang(l){ lang=l; render(); }
+
+render();
+// 支持 ?sample=1 直接看样例报告（落地页“看样例报告”按钮会带此参数进来）
+try{ if(new URLSearchParams(location.search).get('sample')==='1') loadSample(true); }catch(e){}
+</script>
+</body>
+</html>

@@ -1,70 +1,61 @@
 /* ============================================================
-   OfferMate · 设计 token（从原型 prototype/*.dc.html 内联样式提炼）
-   D1 地基日 · 任务 3
+   OfferMate · 设计 token（来自原型 OfferMate_Landing.html / OfferMate_Diagnosis.html）
+   主题：白底 + 近黑墨色(--green=#1F1F1F) + 柠檬绿高亮(--mint=#E4F222) + Inter
    ============================================================ */
 
 :root {
-  /* —— 品牌 —— */
-  --primary: #0F5C42;
-  --primary-light: #7DD3AE;
-  --dark: #0C1E2E;
-  --accent: #E8B86F;
+  --paper: #FFFFFF;
+  --paper-2: #F6F6F4;
+  --card: #FFFFFF;
+  --card-soft: #FAFAF8;
 
-  /* —— 语义（严重度 / 状态）—— */
-  --success: #0F5C42;
-  --success-bg: #E8F1ED;
-  --success-border: #CFE0D6;
-  --warning: #9C6B1F;
-  --warning-bg: #FFF5E5;
-  --warning-border: #F1E0BD;
-  --danger: #C8631E;
-  --danger-bg: #FBEAE0;
-  --danger-border: #EBCBB3;
+  --ink: #1F1F1F;
+  --ink-2: #3E3E3C;
+  --ink-3: #52524F;
+  --mute: #71716D;
+  --faint: #A6A6A2;
 
-  /* —— 文本 —— */
-  --text-primary: #0C1E2E;
-  --text-secondary: #3D4A56;
-  --text-muted: #6B7079;
-  --text-disabled: #9AA0A6;
+  --line: #EBEBE8;
+  --line-2: #E7E7E4;
+  --line-3: #D8D8D4;
 
-  /* —— 背景 / 边框 —— */
-  --bg-page: #F7F5EF;
-  --bg-surface: #FFFFFF;
-  --bg-alt: #F2EFE5;
-  --bg-subtle: #EFEBDF;
-  --border: #E7E2D4;
-  --border-strong: #E0DBCB;
-  --border-dashed: #D6D0C0;
+  /* 品牌：--green 实为近黑墨色，--mint 为柠檬绿高亮 */
+  --green: #1F1F1F;
+  --green-deep: #000000;
+  --mint: #E4F222;
+  --green-bg: #F7FAD9;
+  --green-bd: #DCE85A;
+  --gold: #D8DB3A;
 
-  /* —— 圆角 —— */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
-  --radius-xl: 12px;
-  --radius-2xl: 14px;
-  --radius-3xl: 16px;
-  --radius-pill: 999px;
+  --amber: #8A6A1F;
+  --amber-bg: #F8F1DE;
+  --amber-bd: #EBDCAE;
+  --orange: #B8401F;
+  --orange-bg: #FBE9E2;
+  --orange-bd: #EFC7B6;
 
-  /* —— 阴影 —— */
-  --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 1px 0 rgba(0, 0, 0, 0.02), 0 30px 60px -40px rgba(12, 30, 46, 0.12);
-  --shadow-lg: 0 24px 48px -28px rgba(12, 30, 46, 0.18);
-  --shadow-button: 0 1px 0 rgba(0, 0, 0, 0.04), 0 12px 28px -10px rgba(15, 92, 66, 0.45);
+  /* 字体（Inter 由 app/layout.tsx 的 next/font 注入为 --font-inter） */
+  --sans: var(--font-inter), "MiSans", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --mono: var(--font-inter), "MiSans", "PingFang SC", system-ui, sans-serif;
 
-  /* —— 字体 —— (Geist 由 app/layout.tsx 的 next/font 注入) */
-  --font-sans: var(--font-geist-sans), "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
-
-  /* —— 布局 —— */
-  --container: 1200px;
+  --shadow-card: 0 1px 0 rgba(0, 0, 0, 0.02), 0 24px 48px -32px rgba(31, 31, 31, 0.18);
 }
 
 /* ============================================================
-   基础 reset / base（取自原型 <style>）
+   基础 reset / base
    ============================================================ */
 
 * {
   box-sizing: border-box;
+}
+
+::selection {
+  background: #E4F222;
+  color: #1F1F1F;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
@@ -74,9 +65,9 @@ body {
 }
 
 body {
-  font-family: var(--font-sans);
-  background: var(--bg-page);
-  color: var(--text-primary);
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -91,42 +82,14 @@ button {
   cursor: pointer;
 }
 
-textarea {
-  font-family: inherit;
-  resize: none;
-  outline: none;
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
-textarea:focus {
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 0 3px rgba(15, 92, 66, 0.12);
-}
-
-/* ============================================================
-   动画 keyframes（取自原型：加载 spinner / 脉冲 / 进度条）
-   ============================================================ */
-
-@keyframes om-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes om-pulse {
-  0%,
-  100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes om-progress {
-  0% {
-    width: 0;
-  }
-  100% {
-    width: 100%;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
