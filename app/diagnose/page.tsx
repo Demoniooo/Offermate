@@ -7,6 +7,7 @@ import type { DiagnosisReport, Severity, JDStatus } from "@/lib/types";
 import "./diagnose.css";
 
 type Phase = "input" | "loading" | "report";
+const MAX_RESUME = 6000; // 与 app/api/diagnose/route.ts 的截断上限一致
 
 // severity / status → 颜色 key（SEV_COLORS: ok/weak/miss）
 const SEV_KEY: Record<Severity, "ok" | "weak" | "miss"> = { 高: "miss", 中: "weak", 低: "ok" };
@@ -48,6 +49,7 @@ export default function Diagnose() {
 
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const abortRef = useRef<AbortController | null>(null);
   const t = DIAGNOSIS_I18N[lang];
   const isZh = lang === "zh";
 
@@ -64,6 +66,9 @@ export default function Diagnose() {
   // 真诊断：调 /api/diagnose
   async function runDiagnosis() {
     if (!resume.trim()) return;
+    abortRef.current?.abort(); // 终止任何在途请求（防连点双发 / 旧响应回灌）
+    const ac = new AbortController();
+    abortRef.current = ac;
     clearTimers();
     setError(false);
     setIsDemo(false);
@@ -75,14 +80,18 @@ export default function Diagnose() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ resume: resume.trim(), jd: jd.trim() || undefined, lang }),
+        signal: ac.signal,
       });
+      if (ac.signal.aborted) return; // 已被取消/被新请求取代：丢弃结果
       if (!res.ok) throw new Error(String(res.status));
       const data = (await res.json()) as DiagnosisReport;
+      if (ac.signal.aborted) return;
       if (typeof data?.overall_score !== "number" || !Array.isArray(data?.findings)) throw new Error("bad");
       clearTimers();
       setReport(data);
       setPhase("report");
     } catch {
+      if (ac.signal.aborted) return; // 用户主动取消：静默，不进错误态
       clearTimers();
       setError(true);
     }
@@ -106,6 +115,7 @@ export default function Diagnose() {
   }
 
   function cancelDiagnosis() {
+    abortRef.current?.abort(); // 真正掐断在途的模型调用（配合 route 透传 req.signal）
     clearTimers();
     setError(false);
     setPhase("input");
@@ -174,7 +184,11 @@ export default function Diagnose() {
     } catch {
       /* noop */
     }
-    return clearTimers;
+    return () => {
+      clearTimers();
+      clearTimeout(toastTimer.current); // 卸载时清 toast timer
+      abortRef.current?.abort(); // 卸载时掐断在途请求
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -228,7 +242,10 @@ export default function Diagnose() {
                   <div className="f-label">
                     <span className="num">1</span><b>{t.resume_field_label}</b>
                     <span className="tagx req">{t.required_tag}</span>
-                    <span className="count">{resume.length} {t.count_unit}</span>
+                    <span className={`count${resume.length > MAX_RESUME ? " over" : ""}`}>
+                      {resume.length} {t.count_unit}
+                      {resume.length > MAX_RESUME && (isZh ? ` · 超 ${MAX_RESUME} 字将被截断` : ` · over ${MAX_RESUME} truncated`)}
+                    </span>
                   </div>
                   <textarea id="resume" value={resume} placeholder={t.resume_placeholder} onChange={(e) => setResume(e.target.value)} />
                   <div className="tips">
