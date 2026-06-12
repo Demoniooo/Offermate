@@ -111,3 +111,74 @@ export interface DiagnoseRequest {
   /** 目标岗位 JD，可选；缺省时 jd_match 走通用建议 */
   jd?: string;
 }
+
+/* ============================================================
+   模拟面试契约（D10）
+   模型无记忆：每轮把完整对话历史 + 简历 + JD 全量回传。
+   ============================================================ */
+
+/** 一条面试对话消息（喂 /api/interview 的历史） */
+export interface InterviewMessage {
+  /** interviewer = AI 面试官；candidate = 用户 */
+  role: "interviewer" | "candidate";
+  content: string;
+}
+
+/** 面试官单轮产出的类型：主问题 / 追问 / 收尾 */
+export type InterviewKind = "question" | "follow_up" | "closing";
+
+/** 进度游标：上一轮 InterviewTurn 的两个计数字段，客户端原样回传 */
+export interface InterviewCursor {
+  question_index: number;
+  follow_up_depth: number;
+}
+
+/** /api/interview 的请求体契约 */
+export interface InterviewRequest {
+  resume: string;
+  /** 目标岗位 JD，可选 */
+  jd?: string;
+  /** 压力面开关：true = 追问更犀利、判定更严 */
+  pressure?: boolean;
+  /** 至今的完整对话；首轮为空数组 */
+  messages: InterviewMessage[];
+  /**
+   * 上一轮返回的进度游标；首轮省略。
+   * 由它（而非模型自报）确定性地推进题号 / 追问层级并封顶追问——
+   * 计数是服务端能算的，就不交给模型猜（与诊断同款「服务端兜底」原则）。
+   */
+  cursor?: InterviewCursor;
+  /**
+   * 开场准备时由 /api/interview/prepare 联网生成的「岗位研究简报」。
+   * 模型无记忆，和简历/JD 一样每轮回传；缺省则面试退回纯 JD 出题。
+   */
+  brief?: string;
+}
+
+/** /api/interview/prepare 的请求体：开场联网研究 JD */
+export interface InterviewPrepRequest {
+  resume: string;
+  jd?: string;
+}
+
+/** /api/interview/prepare 的返回体：岗位研究简报（联网失败时为空串，面试照常开场） */
+export interface InterviewPrep {
+  brief: string;
+}
+
+/** /api/interview 的返回体：面试官的下一句 + 驱动前端 UI 的元信息 */
+export interface InterviewTurn {
+  /** 面试官要说的话（主问题 / 追问 / 收尾语） */
+  reply: string;
+  kind: InterviewKind;
+  /** 第几道主问题（1 起） */
+  question_index: number;
+  /** 追问层级：0 = 主问题本身，1–3 = 第几层追问 */
+  follow_up_depth: number;
+  /** 上一条候选人回答是否「空泛」（缺数字/方法/对照）——驱动 ⚠ 标记与复盘取数 */
+  vague: boolean;
+  /** 面试是否结束（kind=closing 时为 true） */
+  done: boolean;
+  /** 计划主问题总数（驱动「Q x/N」进度条） */
+  total_questions: number;
+}
