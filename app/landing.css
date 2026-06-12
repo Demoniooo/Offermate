@@ -182,6 +182,8 @@ h1{margin:22px 0 0;font-size:clamp(36px,4.6vw,58px);line-height:1.12;letter-spac
 .method-card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
 .method-card li{position:relative;padding-left:18px;font-size:13px;line-height:1.5;color:var(--ink-2)}
 .method-card li::before{content:"";position:absolute;left:0;top:6px;width:7px;height:7px;border-radius:2px;background:var(--mint)}
+.method-card .method-src{display:inline-block;margin-top:14px;font-family:var(--mono);font-size:11px;line-height:1.4;color:var(--mute);text-decoration:none;border-bottom:1px solid var(--line-3);padding-bottom:1px}
+.method-card .method-src:hover{color:var(--green);border-color:var(--mint)}
 .principles{margin-top:32px;background:var(--ink);border-radius:18px;padding:34px 40px;color:#F2F4F6}
 .principles-title{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mint);margin-bottom:22px}
 .principles-row{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}

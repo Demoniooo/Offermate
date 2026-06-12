@@ -5,7 +5,7 @@
    关键：提供「一个完整输出示例」，模型对照示例的结构远比对照抽象 schema 可靠。
    ============================================================ */
 
-import { RUBRIC, type Lang } from "./rubric";
+import { RESUME_RUBRIC, type Lang } from "./rubric";
 
 /** 固定五维标签（保证雷达图 5 轴一致） */
 export const DIMENSION_LABELS: Record<Lang, [string, string, string, string, string]> = {
@@ -76,11 +76,14 @@ const EXAMPLE: Record<Lang, unknown> = {
 };
 
 function rubricText(lang: Lang): string {
-  const r = RUBRIC[lang];
+  const r = RESUME_RUBRIC[lang];
   const crit = lang === "zh" ? "评分细则" : "Criteria";
-  // 关键：把每类来源的 points（可操作评分细则）也注入，而不只是 name + summary
+  // 关键：把每类来源的 points（可操作评分细则）+ 真实出处也注入，basis 才可追溯
   const sources = r.sources
-    .map((s) => `- ${s.name}：${s.summary}\n  ${crit}：${s.points.map((p) => `「${p}」`).join("；")}`)
+    .map((s) => {
+      const cite = s.source ? `（出处：${s.source.label}）` : "";
+      return `- ${s.name}${cite}：${s.summary}\n  ${crit}：${s.points.map((p) => `「${p}」`).join("；")}`;
+    })
     .join("\n");
   const principles = r.principles.map((p) => `- ${p.label}：${p.desc}`).join("\n");
   return `评估依据（已转化为结构化 rubric，必须据此打分，不得凭感觉）：\n${sources}\n\n每条发现必须同时给出：\n${principles}`;

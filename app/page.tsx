@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import { LANDING_I18N, JD_COLORS, type Lang } from "@/lib/landing-i18n";
-import { RUBRIC } from "@/lib/rubric";
+import { RESUME_RUBRIC } from "@/lib/rubric";
 import "./landing.css";
 
 // D3 才会建 /diagnose 路由；现在按钮先指向它（建好前点击会 404）。
@@ -12,7 +12,7 @@ const DIAGNOSE_SAMPLE = "/diagnose?sample=1";
 export default function Home() {
   const [lang, setLang] = useState<Lang>("zh");
   const t = LANDING_I18N[lang];
-  const r = RUBRIC[lang];
+  const r = RESUME_RUBRIC[lang];
 
   // 顶部条幅：把 "MVP · 求职季限免开放" 拆成 标签 + 文案
   const [tbTag, ...tbRest] = t.hero_badge.split(" · ");
@@ -318,6 +318,11 @@ export default function Home() {
               <h3>{s.name}</h3>
               <p>{s.summary}</p>
               <ul>{s.points.map((p, i) => <li key={i}>{p}</li>)}</ul>
+              {s.source && (
+                <a className="method-src" href={s.source.url} target="_blank" rel="noopener noreferrer">
+                  {lang === "zh" ? "来源" : "Source"} · {s.source.label} ↗
+                </a>
+              )}
             </div>
           ))}
         </div>
