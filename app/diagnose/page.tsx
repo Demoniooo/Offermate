@@ -7,6 +7,7 @@ import type { DiagnosisReport, Severity, JDStatus } from "@/lib/types";
 import "./diagnose.css";
 
 type Phase = "input" | "loading" | "report";
+const MAX_RESUME = 6000; // 与 app/api/diagnose/route.ts 的截断上限一致
 
 // severity / status → 颜色 key（SEV_COLORS: ok/weak/miss）
 const SEV_KEY: Record<Severity, "ok" | "weak" | "miss"> = { 高: "miss", 中: "weak", 低: "ok" };
@@ -185,6 +186,7 @@ export default function Diagnose() {
     }
     return () => {
       clearTimers();
+      clearTimeout(toastTimer.current); // 卸载时清 toast timer
       abortRef.current?.abort(); // 卸载时掐断在途请求
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -240,7 +242,10 @@ export default function Diagnose() {
                   <div className="f-label">
                     <span className="num">1</span><b>{t.resume_field_label}</b>
                     <span className="tagx req">{t.required_tag}</span>
-                    <span className="count">{resume.length} {t.count_unit}</span>
+                    <span className={`count${resume.length > MAX_RESUME ? " over" : ""}`}>
+                      {resume.length} {t.count_unit}
+                      {resume.length > MAX_RESUME && (isZh ? ` · 超 ${MAX_RESUME} 字将被截断` : ` · over ${MAX_RESUME} truncated`)}
+                    </span>
                   </div>
                   <textarea id="resume" value={resume} placeholder={t.resume_placeholder} onChange={(e) => setResume(e.target.value)} />
                   <div className="tips">

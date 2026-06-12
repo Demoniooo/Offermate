@@ -5,7 +5,7 @@
    ============================================================ */
 
 import { NextResponse } from "next/server";
-import { buildDiagnosisMessages } from "@/lib/prompts";
+import { buildDiagnosisMessages, DIMENSION_LABELS } from "@/lib/prompts";
 import type { DiagnosisReport } from "@/lib/types";
 import type { Lang } from "@/lib/rubric";
 
@@ -69,9 +69,20 @@ function structOk(r: any): boolean {
   );
 }
 
-/** 达到提示词约定的完整规格：≥3 条发现、≥1 条改写、恰好 3 个 JD 桶 */
-function isComplete(r: any): boolean {
-  return structOk(r) && r.findings.length >= 3 && r.rewrites.length >= 1 && r.jd_match.buckets.length === 3;
+/** 五维 label 是否为本语言的固定标签且顺序一致（雷达图按数组序贴固定坐标，乱序/改名会画歪） */
+function dimsOrdered(r: any, lang: Lang): boolean {
+  const want = DIMENSION_LABELS[lang];
+  const norm = (s: unknown) => String(s).replace(/\s+/g, "");
+  return (
+    Array.isArray(r?.dimensions) &&
+    r.dimensions.length === 5 &&
+    r.dimensions.every((d: any, i: number) => norm(d?.label) === norm(want[i]))
+  );
+}
+
+/** 达到提示词约定的完整规格：5 维标签正序、≥3 条发现、≥1 条改写、恰好 3 个 JD 桶 */
+function isComplete(r: any, lang: Lang): boolean {
+  return structOk(r) && dimsOrdered(r, lang) && r.findings.length >= 3 && r.rewrites.length >= 1 && r.jd_match.buckets.length === 3;
 }
 
 const NEXT_STEPS: Record<Lang, { title: string; subtitle: string }> = {
@@ -123,7 +134,7 @@ async function callLLM(messages: { role: string; content: string }[], clientSign
   const data = await res.json();
   const choice = data?.choices?.[0];
   const content: string = choice?.message?.content ?? "";
-  console.error(`[diagnose] finish=${choice?.finish_reason} len=${content.length} out_tokens=${data?.usage?.completion_tokens}`);
+  console.log(`[diagnose] finish=${choice?.finish_reason} len=${content.length} out_tokens=${data?.usage?.completion_tokens}`);
   return content;
 }
 
@@ -157,7 +168,7 @@ export async function POST(req: Request) {
     try {
       const content = await callLLM(messages, req.signal);
       const report = parseReport(content);
-      if (isComplete(report)) return NextResponse.json(finalize(report as DiagnosisReport, lang));
+      if (isComplete(report, lang)) return NextResponse.json(finalize(report as DiagnosisReport, lang));
       if (structOk(report) && !fallback) fallback = report;
     } catch (e) {
       // 错误细节只留服务端日志，绝不透传给客户端（可能含供应商/配额/账号信息）
