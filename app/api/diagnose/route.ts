@@ -75,11 +75,16 @@ function isComplete(r: any): boolean {
   return structOk(r) && r.findings.length >= 3 && r.jd_match.buckets.length === 3;
 }
 
-async function callLLM(messages: { role: string; content: string }[]): Promise<string> {
+async function callLLM(messages: { role: string; content: string }[], clientSignal?: AbortSignal): Promise<string> {
   const base = process.env.LLM_BASE_URL;
   const key = process.env.LLM_API_KEY;
   const model = process.env.LLM_MODEL;
   if (!base || !key || !model) throw new Error("LLM env not configured");
+
+  // 每次调用 25s 预算：两次 + 解析开销 < 60s（Vercel maxDuration），保证错误兜底有机会执行。
+  // 同时接住客户端取消信号：用户在前端 abort 时，上游模型调用真的被掐断，不再白烧 token。
+  const timeout = AbortSignal.timeout(25_000);
+  const signal = clientSignal ? AbortSignal.any([timeout, clientSignal]) : timeout;
 
   const res = await fetch(`${base}/chat/completions`, {
     method: "POST",
@@ -94,6 +99,7 @@ async function callLLM(messages: { role: string; content: string }[]): Promise<s
       max_tokens: 8000,
       response_format: { type: "json_object" },
     }),
+    signal,
   });
 
   if (!res.ok) {
@@ -129,7 +135,7 @@ export async function POST(req: Request) {
   let fallback: DiagnosisReport | null = null;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const content = await callLLM(messages);
+      const content = await callLLM(messages, req.signal);
       const report = parseReport(content);
       if (isComplete(report)) return NextResponse.json(report);
       if (structOk(report) && !fallback) fallback = report;
