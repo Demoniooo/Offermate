@@ -459,7 +459,7 @@ export default function Diagnose() {
                 <p>{report.next_steps.subtitle}</p>
               </div>
               <div className="next-btns">
-                <button className="btn btn-primary btn-lg" onClick={() => toast(t.toast_msg)}><span>{t.next_btn_primary}</span> →</button>
+                <a className="btn btn-primary btn-lg" href="/interview"><span>{t.next_btn_primary}</span> →</a>
                 <button className="btn btn-ghost btn-lg" onClick={backToInput}>{t.next_btn_secondary}</button>
               </div>
             </div>

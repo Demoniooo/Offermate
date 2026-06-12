@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OfferMate — 模拟面试</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FFFFFF; --paper-2:#F6F6F4; --card:#FFFFFF; --card-soft:#FAFAF8;
+  --ink:#1F1F1F; --ink-2:#3E3E3C; --ink-3:#52524F; --mute:#71716D; --faint:#A6A6A2;
+  --line:#EBEBE8; --line-2:#E7E7E4; --line-3:#D8D8D4;
+  --green:#1F1F1F; --green-deep:#000000; --mint:#E4F222; --green-bg:#F7FAD9; --green-bd:#DCE85A;
+  --amber:#8A6A1F; --amber-bg:#F8F1DE; --amber-bd:#EBDCAE;
+  --orange:#B8401F; --orange-bg:#FBE9E2; --orange-bd:#EFC7B6;
+  --sans:'Inter','MiSans','PingFang SC','HarmonyOS Sans SC','Microsoft YaHei',system-ui,sans-serif;
+  --mono:'Inter','MiSans','PingFang SC',system-ui,sans-serif;
+  --shadow-card:0 1px 0 rgba(0,0,0,.02),0 24px 48px -32px rgba(31,31,31,.12);
+}
+*{box-sizing:border-box}
+::selection{background:#E4F222;color:#1F1F1F}
+html,body{margin:0;padding:0}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:4px}
+[hidden]{display:none!important}
+.wrap{margin:0 auto;padding-left:32px;padding-right:32px}
+.eyebrow{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--green);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+@keyframes om-pulse{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes om-spin{to{transform:rotate(360deg)}}
+@keyframes om-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.appear{animation:om-up .45s ease both}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+
+/* ---------- NAV ---------- */
+nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1140px;display:flex;align-items:center;gap:18px;padding-top:12px;padding-bottom:12px}
+.brand{display:flex;align-items:center;gap:9px}
+.brand b{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.tool-label{font-family:var(--mono);font-size:11.5px;color:var(--mute);padding-left:16px;border-left:1px solid var(--line-3)}
+.steps{margin:0 auto;display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:500;color:var(--faint)}
+.stp{display:flex;align-items:center;gap:7px}
+.stp i{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line-3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10.5px;font-style:normal}
+.stp.on{color:var(--ink)}
+.stp.on i{background:var(--ink);border-color:var(--ink);color:var(--mint)}
+.stp-line{width:26px;height:1px;background:var(--line-3)}
+.lang{display:flex;align-items:center;gap:4px;padding:3px;background:#F0F0EE;border:1px solid #E0E0DD;border-radius:999px;font-size:12px}
+.lang button{padding:4px 10px;border:none;border-radius:999px;background:transparent;color:var(--mute);font-weight:600}
+.lang button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(31,31,31,.08)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:10px;font-weight:600;border:1px solid transparent;transition:transform .15s,box-shadow .15s,background .15s,border-color .15s,opacity .15s}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--green);color:#fff;box-shadow:0 8px 20px -10px rgba(31,31,31,.18)}
+.btn-primary:hover{background:var(--green-deep)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn-ghost{background:#fff;color:var(--ink);border-color:var(--line-3)}
+.btn-ghost:hover{border-color:var(--ink)}
+.btn-sm{padding:8px 14px;font-size:13px}
+.btn-lg{padding:12px 20px;font-size:14.5px}
+
+/* ---------- 界面1 · 准备 ---------- */
+#phase-prep .wrap{max-width:760px;padding-top:64px;padding-bottom:110px}
+.prep-head h1{margin:0;font-size:clamp(25px,3vw,32px);font-weight:600;letter-spacing:-.02em;line-height:1.25;text-wrap:balance}
+.prep-head p{margin:10px 0 0;font-size:14.5px;line-height:1.65;color:var(--ink-3);max-width:600px}
+.prep-card{margin-top:26px;background:var(--card);border:1px solid var(--line-2);border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden}
+.job{padding:22px 24px;display:flex;flex-direction:column;gap:12px}
+.job-row{display:flex;align-items:baseline;gap:14px}
+.job-row small{flex:none;width:72px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.job-row b{font-size:15.5px;font-weight:600}
+.job-row span{font-size:13.5px;color:var(--ink-3)}
+.ctx-chip{display:inline-flex;align-items:center;gap:6px;width:fit-content;font-family:var(--mono);font-size:11.5px;font-weight:700;color:#4A5207;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:999px;padding:4px 11px}
+.prep-opts{border-top:1px solid var(--line);padding:16px 24px;display:flex;flex-direction:column;gap:12px}
+.opt-row{display:flex;align-items:center;gap:12px}
+.opt-row b{font-size:13.5px;font-weight:600}
+.opt-row .meta{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+/* 压力面开关（交接清单 D 区规格） */
+.switch-wrap{display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
+.switch-wrap input{position:absolute;opacity:0;width:1px;height:1px}
+.switch{position:relative;flex:none;width:40px;height:22px;border-radius:999px;background:#E0E0DD;transition:background .15s}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;border:1px solid #D8D8D4;transition:left .15s,background .15s,border-color .15s}
+.switch-wrap input:checked ~ .switch{background:var(--mint)}
+.switch-wrap input:checked ~ .switch::after{left:20px;background:#1F1F1F;border-color:#1F1F1F}
+.switch-wrap input:focus-visible ~ .switch{outline:2px solid var(--green);outline-offset:2px}
+.prep-foot{border-top:1px solid var(--line);background:var(--card-soft);padding:16px 24px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.prep-foot .qmeta{font-family:var(--mono);font-size:12px;color:var(--mute)}
+/* 空状态 */
+.empty-card{margin-top:26px;background:var(--card);border:1px dashed var(--line-3);border-radius:16px;padding:44px 32px;text-align:center}
+.empty-card h2{margin:0;font-size:19px;font-weight:600}
+.empty-card p{margin:10px auto 0;font-size:13.5px;line-height:1.65;color:var(--ink-3);max-width:420px}
+.empty-card .btns{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+
+/* ---------- loading 卡（界面1.5 / 界面3 复用） ---------- */
+.load-wrap{max-width:680px;padding-top:96px;padding-bottom:120px}
+.load-card{background:var(--card);border:1px solid var(--line-2);border-radius:16px;box-shadow:var(--shadow-card);padding:36px 36px 24px;text-align:center}
+.spinner{width:38px;height:38px;border-radius:50%;border:3px solid var(--green-bg);border-top-color:var(--green);margin:0 auto 18px;animation:om-spin 1s linear infinite}
+.load-card h2{margin:0;font-size:21px;font-weight:600}
+.load-card .sub{margin:8px 0 0;font-size:13.5px;color:var(--ink-3)}
+.load-steps{margin:26px 0 0;text-align:left}
+.lstep{display:flex;align-items:center;gap:12px;padding:11px 4px;border-top:1px dashed var(--line)}
+.lstep .ic{flex:none;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:1.5px solid var(--line-3);color:transparent}
+.lstep b{font-size:13.5px;font-weight:600;color:var(--faint)}
+.lstep span{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.lstep.done .ic{background:var(--green-bg);border-color:var(--green-bd);color:#4A5207}
+.lstep.done b{color:var(--ink-2)}
+.lstep.active .ic{border-color:var(--green)}
+.lstep.active .ic::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--green);animation:om-pulse 1s infinite}
+.lstep.active b{color:var(--ink)}
+.load-foot{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11.5px;color:var(--mute)}
+.load-foot a{color:var(--ink-3);text-decoration:underline;cursor:pointer}
+
+/* ---------- 界面2 · 面试聊天 ---------- */
+/* 状态条：吸附在导航下方，底部 3px 进度 */
+.status{position:sticky;top:51px;z-index:40;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.status-in{max-width:760px;margin:0 auto;padding:9px 20px;display:flex;align-items:center;gap:12px}
+.status .q{font-family:var(--mono);font-size:13px;font-weight:700}
+.status .q small{color:var(--faint);font-weight:500}
+.status .lv{font-family:var(--mono);font-size:11.5px;color:var(--mute)}
+.status .lv b{color:var(--amber)}
+.pressure{font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--orange);background:var(--orange-bg);border:1px solid var(--orange-bd);padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:6px}
+.pressure i{width:6px;height:6px;border-radius:50%;background:var(--orange);animation:om-pulse 1.6s infinite}
+.status .end{margin-left:auto}
+.progress{height:3px;background:#ECECEA}
+.progress i{display:block;height:100%;background:var(--mint);width:0;transition:width .35s ease}
+
+/* 消息流 */
+#chat{max-width:760px;margin:0 auto;padding:22px 20px 16px}
+.msg{display:flex;gap:10px;margin-top:16px}
+.msg .av{flex:none;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:700}
+.msg.ai .av{background:var(--ink);color:var(--mint)}
+.msg.me{flex-direction:row-reverse}
+.msg.me .av{background:#F0F0EE;color:var(--ink-2)}
+.bubble{max-width:78%;padding:11px 14px;border-radius:12px;font-size:14px;line-height:1.62;white-space:pre-wrap;word-break:break-word}
+.msg.ai .bubble{background:var(--card-soft);border:1px solid var(--line-2)}
+.msg.me .bubble{background:var(--green-bg);border:1px solid var(--green-bd);color:#3F4708}
+/* 追问：缩进 + 琥珀竖线 + tag */
+.msg.fu{margin-left:16px}
+.msg.fu .fu-body{border-left:2px solid var(--amber-bd);padding-left:12px}
+.fu-tag{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber-bd);padding:2px 8px;border-radius:999px;margin-bottom:6px}
+.flag{display:inline-block;margin-top:6px;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--orange);background:var(--orange-bg);border:1px solid var(--orange-bd);padding:2.5px 8px;border-radius:999px}
+.typing{display:inline-flex;gap:4px;padding:12px 14px;background:var(--card-soft);border:1px solid var(--line-2);border-radius:12px}
+.typing i{width:5px;height:5px;border-radius:50%;background:var(--faint);animation:om-pulse 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+
+/* 输入区：吸附底部，三态 */
+.dock{position:sticky;bottom:0;z-index:40;background:var(--paper);border-top:1px solid var(--line);padding:12px 0 calc(12px + env(safe-area-inset-bottom))}
+.dock-in{max-width:760px;margin:0 auto;padding:0 20px}
+.confirm-bar{display:flex;align-items:center;gap:12px;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:12px;padding:10px 14px;margin-bottom:10px;flex-wrap:wrap}
+.confirm-bar p{margin:0;font-size:13px;color:#6B5414;flex:1;min-width:200px}
+.input-row{display:flex;gap:10px;align-items:flex-end}
+.input-box{flex:1;position:relative}
+.input-box textarea{width:100%;border:1px solid var(--line-3);border-radius:12px;background:var(--card-soft);padding:11px 56px 11px 14px;font-family:var(--sans);font-size:14px;line-height:1.55;color:var(--ink);resize:none;max-height:128px;overflow-y:auto;transition:border-color .15s,box-shadow .15s,opacity .15s}
+.input-box textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(31,31,31,.1);background:#fff}
+.input-box textarea:disabled{opacity:.55;background:var(--paper-2)}
+.input-box .count{position:absolute;right:12px;bottom:9px;font-family:var(--mono);font-size:10.5px;color:var(--faint);pointer-events:none}
+#sendBtn{height:44px;padding:0 18px}
+.dock-tip{margin-top:7px;font-family:var(--mono);font-size:10.5px;color:var(--faint);text-align:center}
+/* 已结束态 */
+.dock.ended .input-row,.dock.ended .dock-tip{display:none}
+.ended-bar{display:none;align-items:center;justify-content:center;gap:10px;font-size:13px;color:var(--mute)}
+.dock.ended .ended-bar{display:flex}
+
+@media (max-width:680px){
+  .wrap{padding-left:20px;padding-right:20px}
+  .tool-label,.steps{display:none}
+  .status .lv .lv-word{display:none}
+  .bubble{max-width:86%}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="OfferMate_Landing.html" aria-label="OfferMate 首页">
+      <svg width="26" height="26" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#1F1F1F"/><circle cx="13" cy="15" r="6.2" fill="none" stroke="#FFF" stroke-width="1.6"/><path d="M 9.5 18.5 L 20 8 M 20 8 L 14.5 8 M 20 8 L 20 13.5" stroke="#E4F222" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <b>OfferMate</b>
+    </a>
+    <span class="tool-label" data-i18n="tool_label"></span>
+    <div class="steps" aria-hidden="true">
+      <span class="stp on"><i>✓</i><span data-i18n="step1"></span></span>
+      <span class="stp-line"></span>
+      <span class="stp on"><i>2</i><span data-i18n="step2"></span></span>
+      <span class="stp-line"></span>
+      <span class="stp"><i>3</i><span data-i18n="step3"></span></span>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button id="zhBtn" class="on" onclick="setLang('zh')">中文</button>
+      <button id="enBtn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ 界面1 · 准备 ============ -->
+<section id="phase-prep">
+  <div class="wrap">
+    <div class="prep-head">
+      <div class="eyebrow" data-i18n="prep_eyebrow"></div>
+      <h1 data-i18n="prep_title"></h1>
+      <p data-i18n="prep_sub"></p>
+    </div>
+
+    <!-- 正常态 -->
+    <div class="prep-card" id="prepCard">
+      <div class="job">
+        <div class="job-row"><small data-i18n="job_role_label"></small><b data-i18n="job_role"></b></div>
+        <div class="job-row"><small data-i18n="job_co_label"></small><span data-i18n="job_co"></span></div>
+        <span class="ctx-chip">✓ <span data-i18n="ctx_chip"></span></span>
+      </div>
+      <div class="prep-opts">
+        <label class="switch-wrap">
+          <input type="checkbox" id="pressureToggle">
+          <span class="switch" aria-hidden="true"></span>
+          <b data-i18n="opt_pressure"></b>
+          <span class="meta opt-row" style="margin-left:auto"><span class="meta" data-i18n="opt_pressure_meta"></span></span>
+        </label>
+      </div>
+      <div class="prep-foot">
+        <span class="qmeta" data-i18n="q_meta"></span>
+        <button class="btn btn-primary btn-lg" onclick="startPrep()"><span data-i18n="start_btn"></span> →</button>
+      </div>
+    </div>
+
+    <!-- 空状态（?empty=1 查看） -->
+    <div class="empty-card" id="emptyCard" hidden>
+      <h2 data-i18n="empty_title"></h2>
+      <p data-i18n="empty_body"></p>
+      <div class="btns">
+        <a class="btn btn-primary btn-lg" href="OfferMate_Diagnosis.html" data-i18n="empty_primary"></a>
+        <button class="btn btn-ghost btn-lg" onclick="useSampleCtx()" data-i18n="empty_secondary"></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 界面1.5 · 准备中 ============ -->
+<section id="phase-prepload" hidden>
+  <div class="wrap load-wrap">
+    <div class="load-card appear">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="eyebrow" style="margin-bottom:8px" data-i18n="prepload_eyebrow"></div>
+      <h2 data-i18n="prepload_title"></h2>
+      <p class="sub" data-i18n="prepload_sub"></p>
+      <div class="load-steps" id="prepSteps"></div>
+      <div class="load-foot">
+        <span data-i18n="prepload_foot"></span>
+        <a onclick="cancelPrep()" data-i18n="cancel_btn"></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 界面2 · 面试中 ============ -->
+<section id="phase-chat" hidden>
+  <div class="status">
+    <div class="status-in">
+      <span class="q">Q <span id="qNow">1</span><small>/8</small></span>
+      <span class="lv"><span class="lv-word" data-i18n="lv_label"></span> <b id="lvNow">L1</b><span style="color:var(--faint)">/L3</span></span>
+      <span class="pressure" id="pressureChip" hidden><i></i><span data-i18n="pressure_on"></span></span>
+      <button class="btn btn-ghost btn-sm end" onclick="askEnd()" data-i18n="end_btn"></button>
+    </div>
+    <div class="progress"><i id="progFill"></i></div>
+  </div>
+
+  <div id="chat" aria-live="polite"></div>
+
+  <div class="dock" id="dock">
+    <div class="dock-in">
+      <div class="confirm-bar" id="confirmBar" hidden>
+        <p id="confirmText"></p>
+        <button class="btn btn-primary btn-sm" onclick="endInterview()" data-i18n="confirm_yes"></button>
+        <button class="btn btn-ghost btn-sm" onclick="hideConfirm()" data-i18n="confirm_no"></button>
+      </div>
+      <div class="input-row">
+        <div class="input-box">
+          <textarea id="ta" rows="1"></textarea>
+          <span class="count"><span id="taCount">0</span><span data-i18n="count_unit"></span></span>
+        </div>
+        <button class="btn btn-primary" id="sendBtn" onclick="send()" data-i18n="send_btn"></button>
+      </div>
+      <div class="dock-tip" data-i18n="dock_tip"></div>
+      <div class="ended-bar"><span data-i18n="ended_tip"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 界面3 · 生成复盘 ============ -->
+<section id="phase-endload" hidden>
+  <div class="wrap load-wrap">
+    <div class="load-card appear">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="eyebrow" style="margin-bottom:8px" data-i18n="endload_eyebrow"></div>
+      <h2 data-i18n="endload_title"></h2>
+      <p class="sub" data-i18n="endload_sub"></p>
+      <div class="load-steps" id="endSteps"></div>
+      <div class="load-foot"><span data-i18n="endload_foot"></span><span></span></div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.documentElement.classList.add('js');
+/* ================= i18n ================= */
+const I18N = {
+zh:{
+  tool_label:'模拟面试 · 体验',step1:'诊断',step2:'模拟面试',step3:'复盘',
+  prep_eyebrow:'STEP 02 · 模拟面试',
+  prep_title:'按你的简历和岗位，来一场真的会追问的面试。',
+  prep_sub:'8 道题，空泛的回答会被追问 2–3 层，直到你讲清楚"做了什么、怎么做的、结果如何"。结束后生成与诊断同格式、可对比的复盘报告。',
+  job_role_label:'目标岗位',job_role:'产品运营实习生',
+  job_co_label:'公司',job_co:'字节跳动 · 抖音电商（来自你粘贴的 JD）',
+  ctx_chip:'简历 + JD 已带入',
+  opt_pressure:'压力面模式',opt_pressure_meta:'追问更不留情面 · 判定更严',
+  q_meta:'8 题 · 约 20 分钟 · 可随时结束',start_btn:'开始面试',
+  empty_title:'还没有你的简历',
+  empty_body:'面试题会按你的简历和目标岗位生成。先去做一次简历诊断（推荐），或直接用样例上下文体验流程。',
+  empty_primary:'去简历诊断',empty_secondary:'用样例直接开始',
+  prepload_eyebrow:'准备中',prepload_title:'正在按你的简历和岗位准备面试…',
+  prepload_sub:'通常 5–20 秒。题目和追问策略都是为这份简历定制的。',
+  prep_steps:[{l:'读取简历与岗位',m:'提取经历 / 关键词'},{l:'生成 8 道主题',m:'按 JD 与经历配题'},{l:'设计追问策略',m:'STAR · 数字 · 对照'}],
+  prepload_foot:'通常 < 20 秒',cancel_btn:'取消',
+  lv_label:'追问',pressure_on:'压力面 开启',end_btn:'结束面试',
+  send_btn:'发送',count_unit:' 字',
+  dock_tip:'Enter 发送 · Shift+Enter 换行',
+  thinking_ph:'面试官正在输入…',input_ph:'输入你的回答…',
+  ended_tip:'面试已结束',
+  confirm_text:(n)=>`结束后将基于已答的 ${n} 题生成复盘报告。确定现在结束吗？`,
+  confirm_yes:'确认结束',confirm_no:'继续面试',
+  endload_eyebrow:'面试结束',endload_title:'正在生成复盘报告…',
+  endload_sub:'回放整场对话，按 rubric 逐题评分。',
+  end_steps:[{l:'回放整场对话',m:'8 题 · 追问记录'},{l:'按 rubric 逐题评分',m:'STAR · re:Work · 能力项'}],
+  endload_foot:'通常 < 30 秒',
+  intro:'我看过你的简历了。一共 8 道题——答得空泛我会追问，准备好了我们就开始。',
+  pressure_suffix:'这次请直接给数字或事实，不要形容词。',
+  fu_tag:(n)=>`追问 · 第 ${n} 层`,vague_flag:'回答过于空泛',
+  bank:[
+    {q:'第一题：用 1 分钟介绍一下你自己——重点讲和产品运营相关的部分。',
+     fus:['你提到的这些经历里，哪一段最能证明你适合这个岗位？为什么是它？']},
+    {q:'讲一个你最有成就感的项目：做了什么、为什么是你来做、最后效果如何？',
+     fus:['"效果不错"是指什么指标？对照之前提升了多少？给我一个具体数字。']},
+    {q:'你简历里写留存提升了 11%——这个数字的口径是什么？7 日还是次日？样本量多大？',
+     fus:['对照组是怎么分的？这 11% 是绝对值还是相对值？','如果让你现在重新设计这个实验，你会先改哪一处？']},
+    {q:'讲一次你搞砸了的事：当时发生了什么，你是怎么处理的？',
+     fus:['如果重来一次，你第一个改变的动作是什么？']},
+    {q:'和同伴意见冲突的时候，你一般怎么处理？给一个真实发生过的例子。',
+     fus:['最后按谁的方案执行的？你怎么判断那个决定是对的？']},
+    {q:'JD 里要求 SQL——说一个你真实用过 SQL 的场景：什么数据、什么查询、查出了什么？',
+     fus:['那条查询大概长什么样？用到了 join 还是 group by？','如果数据里有重复记录，你会怎么在查询里处理？']},
+    {q:'情景题：活动上线前两小时，数据看板挂了、老板在催——你的前三个动作是什么？',
+     fus:['如果第一个动作没解决问题，你的 Plan B 是什么？']},
+    {q:'最后一题：你有什么想问我的吗？',fus:[]}
+  ]
+},
+en:{
+  tool_label:'Mock interview · demo',step1:'Diagnose',step2:'Mock interview',step3:'Debrief',
+  prep_eyebrow:'STEP 02 · Mock interview',
+  prep_title:'An interview that actually pushes back — built from your resume.',
+  prep_sub:'8 questions. Vague answers get 2–3 layers of follow-up until you can say what you did, how, and what changed. Ends with a debrief in the same comparable format as your diagnosis.',
+  job_role_label:'Target role',job_role:'Product Ops Intern',
+  job_co_label:'Company',job_co:'ByteDance · Douyin e-Commerce (from your JD)',
+  ctx_chip:'Resume + JD loaded',
+  opt_pressure:'Pressure mode',opt_pressure_meta:'Sharper follow-ups · stricter bar',
+  q_meta:'8 questions · ~20 min · quit anytime',start_btn:'Start interview',
+  empty_title:'No resume yet',
+  empty_body:'Questions are generated from your resume and target role. Run a diagnosis first (recommended), or try the flow with sample context.',
+  empty_primary:'Go to diagnosis',empty_secondary:'Start with sample',
+  prepload_eyebrow:'Preparing',prepload_title:'Building your interview…',
+  prepload_sub:'Usually 5–20s. Questions and follow-up strategy are tailored to this resume.',
+  prep_steps:[{l:'Reading resume & JD',m:'experiences / keywords'},{l:'Generating 8 questions',m:'matched to the role'},{l:'Designing follow-ups',m:'STAR · numbers · baselines'}],
+  prepload_foot:'usually < 20s',cancel_btn:'Cancel',
+  lv_label:'Follow-up',pressure_on:'Pressure ON',end_btn:'End interview',
+  send_btn:'Send',count_unit:' chars',
+  dock_tip:'Enter to send · Shift+Enter for newline',
+  thinking_ph:'Interviewer is typing…',input_ph:'Type your answer…',
+  ended_tip:'Interview ended',
+  confirm_text:(n)=>`Your debrief will cover the ${n} question(s) answered so far. End now?`,
+  confirm_yes:'End now',confirm_no:'Keep going',
+  endload_eyebrow:'Interview over',endload_title:'Generating your debrief…',
+  endload_sub:'Replaying the conversation, scoring each question by rubric.',
+  end_steps:[{l:'Replaying conversation',m:'8 Qs · follow-ups'},{l:'Scoring by rubric',m:'STAR · re:Work · competencies'}],
+  endload_foot:'usually < 30s',
+  intro:"I've read your resume. Eight questions — vague answers get follow-ups. Ready when you are.",
+  pressure_suffix:'Numbers or facts this time — no adjectives.',
+  fu_tag:(n)=>`Follow-up · layer ${n}`,vague_flag:'too vague',
+  bank:[
+    {q:'First: one minute on yourself — focus on what relates to product ops.',
+     fus:['Of everything you mentioned, which single experience best proves the fit? Why that one?']},
+    {q:"Walk me through the project you're proudest of: what you did, why you, what changed.",
+     fus:['"Went well" by which metric? Versus what baseline, by how much? Give me one number.']},
+    {q:'Your resume says retention +11% — measured how? 7-day or next-day? What sample size?',
+     fus:['How was the control split? Is that 11% absolute or relative?','If you redesigned that experiment today, what would you change first?']},
+    {q:'Tell me about a time you messed up: what happened, how did you handle it?',
+     fus:['If you could redo it, what is the first action you would change?']},
+    {q:'When you disagree with a teammate, what do you do? A real example, please.',
+     fus:['Whose plan shipped in the end? How do you know it was the right call?']},
+    {q:'The JD asks for SQL — one real scenario: what data, what query, what did it tell you?',
+     fus:['What did that query roughly look like — joins? group by?','If the data had duplicate rows, how would you handle that in the query?']},
+    {q:'Scenario: two hours before launch the dashboard dies and your manager is pinging — your first three moves?',
+     fus:["If move one doesn't fix it, what's your plan B?"]},
+    {q:'Last one: any questions for me?',fus:[]}
+  ]
+}};
+
+/* ================= 状态 ================= */
+let lang='zh', phase='prep', qi=0, depth=1, thinking=false, ended=false, pressure=false;
+let timers=[];
+const $=id=>document.getElementById(id);
+const T=()=>I18N[lang];
+const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clearAll=()=>{timers.forEach(clearTimeout);timers=[];};
+const later=(fn,ms)=>timers.push(setTimeout(fn,reduced()?Math.min(ms,150):ms));
+
+/* ================= 渲染 chrome ================= */
+function render(){
+  const t=T();
+  document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+  document.title=lang==='zh'?'OfferMate — 模拟面试':'OfferMate — Mock interview';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(typeof t[k]==='string')el.textContent=t[k];});
+  $('zhBtn').classList.toggle('on',lang==='zh');
+  $('enBtn').classList.toggle('on',lang==='en');
+  $('prepSteps').innerHTML=t.prep_steps.map((s,i)=>`<div class="lstep" data-i="${i}"><span class="ic">✓</span><b>${s.l}</b><span>${s.m}</span></div>`).join('');
+  $('endSteps').innerHTML=t.end_steps.map((s,i)=>`<div class="lstep" data-i="${i}"><span class="ic">✓</span><b>${s.l}</b><span>${s.m}</span></div>`).join('');
+  $('ta').placeholder = thinking ? t.thinking_ph : t.input_ph;
+  if($('confirmBar').hidden===false) $('confirmText').textContent=t.confirm_text(answeredCount());
+}
+function setLang(l){lang=l;render();}
+
+/* ================= 阶段切换 ================= */
+function show(p){
+  phase=p;
+  ['prep','prepload','chat','endload'].forEach(x=>$('phase-'+x).hidden = x!==p);
+  window.scrollTo(0,0);
+}
+
+/* ================= 界面1 ================= */
+function useSampleCtx(){ $('emptyCard').hidden=true; $('prepCard').hidden=false; }
+function startPrep(){
+  pressure=$('pressureToggle').checked;
+  show('prepload');
+  paintSteps('prepSteps',0);
+  later(()=>paintSteps('prepSteps',1),900);
+  later(()=>paintSteps('prepSteps',2),1900);
+  later(startChat,3000);
+}
+function cancelPrep(){clearAll();show('prep');}
+function paintSteps(id,step){
+  document.querySelectorAll(`#${id} .lstep`).forEach(el=>{
+    const i=+el.dataset.i;
+    el.classList.toggle('done',i<step);
+    el.classList.toggle('active',i===step);
+  });
+}
+
+/* ================= 界面2 · 聊天 ================= */
+const answeredCount=()=>qi + (depth>1?0:0); // 已完整回答过的题数 = qi
+function startChat(){
+  clearAll();
+  qi=0; depth=1; ended=false; thinking=false;
+  $('chat').innerHTML='';
+  $('pressureChip').hidden=!pressure;
+  $('dock').classList.remove('ended');
+  show('chat');
+  updateStatus();
+  aiSay(T().intro,{plain:true});
+  later(()=>aiSay(T().bank[0].q),reduced()?200:1400);
+}
+function updateStatus(){
+  $('qNow').textContent=Math.min(qi+1,8);
+  $('lvNow').textContent='L'+depth;
+  $('progFill').style.width=(qi/8*100)+'%';
+}
+function el(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstChild;}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function scrollBottom(){window.scrollTo({top:document.body.scrollHeight,behavior:reduced()?'auto':'smooth'});}
+
+function aiSay(text,opt={}){
+  setThinking(true);
+  const tp=el(`<div class="msg ai appear"><span class="av">OM</span><span class="typing"><i></i><i></i><i></i></span></div>`);
+  $('chat').appendChild(tp); scrollBottom();
+  later(()=>{
+    tp.remove();
+    const isFu = depth>1 && !opt.plain;
+    const inner = isFu
+      ? `<div class="fu-body"><span class="fu-tag">${esc(T().fu_tag(depth))}</span><div class="bubble">${esc(text)}</div></div>`
+      : `<div class="bubble">${esc(text)}</div>`;
+    $('chat').appendChild(el(`<div class="msg ai${isFu?' fu':''} appear"><span class="av">OM</span><div>${inner}</div></div>`));
+    setThinking(false); scrollBottom(); $('ta').focus({preventScroll:true});
+  }, opt.fast?400:(900+Math.random()*600));
+}
+function meSay(text,vague){
+  $('chat').appendChild(el(
+    `<div class="msg me appear"><span class="av">${lang==='zh'?'你':'YOU'}</span><div style="text-align:right"><div class="bubble" style="text-align:left">${esc(text)}</div>${vague?`<span class="flag">⚠ ${esc(T().vague_flag)}</span>`:''}</div></div>`
+  ));
+  scrollBottom();
+}
+function setThinking(v){
+  thinking=v;
+  $('ta').disabled=v||ended;
+  $('sendBtn').disabled=v||ended;
+  $('ta').placeholder=v?T().thinking_ph:T().input_ph;
+}
+
+function send(){
+  if(thinking||ended)return;
+  const v=$('ta').value.trim();
+  if(!v)return;
+  const q=T().bank[qi];
+  const threshold=pressure?60:40;
+  const isLast=qi===7;
+  const vague=!isLast && (v.length<threshold || !/\d/.test(v));
+  const canFollow=vague && (depth-1)<q.fus.length;
+  meSay(v,vague&&canFollow);
+  $('ta').value=''; autoGrow();
+  if(canFollow){
+    const fu=q.fus[depth-1]+(pressure?(lang==='zh'?'':' ')+T().pressure_suffix:'');
+    depth++; updateStatus();
+    aiSay(fu);
+  }else{
+    qi++; depth=1; updateStatus();
+    if(qi>=8){ endInterview(); return; }
+    aiSay(T().bank[qi].q);
+  }
+}
+
+/* 输入框：自适应高度 + 计数 + 快捷键 */
+function autoGrow(){
+  const ta=$('ta');
+  ta.style.height='auto';
+  ta.style.height=Math.min(ta.scrollHeight,128)+'px';
+  $('taCount').textContent=ta.value.length;
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const ta=$('ta');
+  ta.addEventListener('input',autoGrow);
+  ta.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
+  });
+});
+
+/* 结束面试（带二次确认） */
+function askEnd(){
+  $('confirmText').textContent=T().confirm_text(qi);
+  $('confirmBar').hidden=false;
+}
+function hideConfirm(){$('confirmBar').hidden=true;}
+function endInterview(){
+  clearAll();
+  ended=true; hideConfirm();
+  $('dock').classList.add('ended');
+  setThinking(false); $('ta').disabled=true; $('sendBtn').disabled=true;
+  show('endload');
+  paintSteps('endSteps',0);
+  later(()=>paintSteps('endSteps',1),1100);
+  later(()=>{location.href='OfferMate_Review.html';},2600);
+}
+
+/* ================= 启动 ================= */
+try{
+  if(new URLSearchParams(location.search).get('empty')==='1'){
+    $('prepCard').hidden=true; $('emptyCard').hidden=false;
+  }
+}catch(e){}
+render();
+</script>
+</body>
+</html>

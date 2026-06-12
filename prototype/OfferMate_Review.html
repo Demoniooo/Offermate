@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OfferMate — 面试复盘报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FFFFFF; --paper-2:#F6F6F4; --card:#FFFFFF; --card-soft:#FAFAF8;
+  --ink:#1F1F1F; --ink-2:#3E3E3C; --ink-3:#52524F; --mute:#71716D; --faint:#A6A6A2;
+  --line:#EBEBE8; --line-2:#E7E7E4; --line-3:#D8D8D4;
+  --green:#1F1F1F; --green-deep:#000000; --mint:#E4F222; --green-bg:#F7FAD9; --green-bd:#DCE85A;
+  --amber:#8A6A1F; --amber-bg:#F8F1DE; --amber-bd:#EBDCAE;
+  --orange:#B8401F; --orange-bg:#FBE9E2; --orange-bd:#EFC7B6;
+  --sans:'Inter','MiSans','PingFang SC','HarmonyOS Sans SC','Microsoft YaHei',system-ui,sans-serif;
+  --mono:'Inter','MiSans','PingFang SC',system-ui,sans-serif;
+  --shadow-card:0 1px 0 rgba(0,0,0,.02),0 24px 48px -32px rgba(31,31,31,.12);
+}
+*{box-sizing:border-box}
+::selection{background:#E4F222;color:#1F1F1F}
+html,body{margin:0;padding:0}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:4px}
+.wrap{margin:0 auto;padding-left:32px;padding-right:32px}
+.eyebrow{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--green);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+@keyframes om-pulse{0%,100%{opacity:.45}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- NAV（修正版：白底、中性灰胶囊） ---------- */
+nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1140px;display:flex;align-items:center;gap:18px;padding-top:12px;padding-bottom:12px}
+.brand{display:flex;align-items:center;gap:9px}
+.brand b{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.tool-label{font-family:var(--mono);font-size:11.5px;color:var(--mute);padding-left:16px;border-left:1px solid var(--line-3)}
+.steps{margin:0 auto;display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:500;color:var(--faint)}
+.stp{display:flex;align-items:center;gap:7px}
+.stp i{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line-3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10.5px;font-style:normal}
+.stp.on{color:var(--ink)}
+.stp.on i{background:var(--ink);border-color:var(--ink);color:var(--mint)}
+.stp-line{width:26px;height:1px;background:var(--line-3)}
+.lang{display:flex;align-items:center;gap:4px;padding:3px;background:#F0F0EE;border:1px solid #E0E0DD;border-radius:999px;font-size:12px}
+.lang button{padding:4px 10px;border:none;border-radius:999px;background:transparent;color:var(--mute);font-weight:600}
+.lang button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(31,31,31,.08)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:10px;font-weight:600;border:1px solid transparent;transition:transform .15s,box-shadow .15s,background .15s,border-color .15s}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--green);color:#fff;box-shadow:0 8px 20px -10px rgba(31,31,31,.18)}
+.btn-primary:hover{background:var(--green-deep)}
+.btn-ghost{background:#fff;color:var(--ink);border-color:var(--line-3)}
+.btn-ghost:hover{border-color:var(--ink)}
+.btn-sm{padding:8px 14px;font-size:13px}
+.btn-lg{padding:12px 20px;font-size:14.5px}
+
+/* ---------- 报告框架（与诊断页同构） ---------- */
+#review .wrap{max-width:1140px;padding-top:40px;padding-bottom:80px}
+.rep-bar{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:26px;flex-wrap:wrap}
+.rep-bar h1{margin:0;font-size:clamp(26px,3.2vw,36px);font-weight:600;letter-spacing:-.02em;line-height:1.2}
+.rep-meta{margin-top:8px;display:flex;gap:12px;font-family:var(--mono);font-size:12px;color:var(--mute);flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--line-2);border-radius:16px;padding:30px;box-shadow:var(--shadow-card)}
+.sum-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:36px;align-items:center}
+.big-score{display:flex;align-items:baseline;gap:4px;margin-top:4px}
+.big-score b{font-family:var(--mono);font-size:92px;font-weight:500;color:var(--green);line-height:1;letter-spacing:-.04em}
+.big-score span{font-family:var(--mono);font-size:22px;color:var(--faint)}
+.delta{display:inline-flex;align-items:center;font-family:var(--mono);font-size:12px;font-weight:700;color:#4A5207;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:999px;padding:3px 9px;margin-left:10px;vertical-align:middle}
+.level{margin-top:12px;display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:999px;font-size:12.5px;font-weight:600;color:var(--green)}
+.level i{width:6px;height:6px;background:var(--green);border-radius:50%}
+.blurb{margin:18px 0 0;font-size:14.5px;line-height:1.65;color:var(--ink-2);max-width:400px}
+.kpis{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:400px}
+.kpi{padding:12px 14px;border-radius:10px;border:1px solid}
+.kpi.warn{background:var(--amber-bg);border-color:var(--amber-bd);color:var(--amber)}
+.kpi.ok{background:var(--green-bg);border-color:var(--green-bd);color:#4A5207}
+.kpi small{display:block;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.kpi b{font-family:var(--mono);font-size:24px;font-weight:500}
+.kpi span{font-size:11.5px;margin-left:3px}
+.sum-right{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center}
+.radar text{font-family:var(--sans);font-size:13px;font-weight:500;fill:var(--ink)}
+.radar .grid{fill:none;stroke:var(--line);stroke-width:1}
+.radar .shape{fill:var(--mint);fill-opacity:.45;stroke:var(--ink);stroke-width:1.8;stroke-linejoin:round}
+.radar .shape.prev{fill:none;stroke:var(--faint);stroke-width:1.2;stroke-dasharray:4 4}
+.radar circle{fill:var(--green)}
+.radar-legend{display:flex;gap:14px;justify-content:center;margin-top:6px;font-family:var(--mono);font-size:10.5px;color:var(--mute)}
+.radar-legend i{display:inline-block;width:14px;height:0;border-top:2px solid var(--ink);vertical-align:middle;margin-right:5px}
+.radar-legend .prev i{border-top:2px dashed var(--faint)}
+.dim-rows{display:flex;flex-direction:column;gap:13px}
+.dim-row .t{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.dim-row .t b{font-size:13px;font-weight:500;color:var(--ink-2)}
+.dim-row .t span{font-family:var(--mono);font-size:12px;font-weight:600}
+.dim-row .d{font-family:var(--mono);font-size:10.5px;font-weight:700;color:#4A5207;margin-left:6px}
+.bar{height:6px;background:#ECECEA;border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;width:var(--w)}
+.dim-note{margin-top:4px;font-size:11.5px;color:var(--mute)}
+
+.sec-row{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:54px 0 20px;flex-wrap:wrap}
+.sec-row h2{margin:0;font-size:24px;font-weight:600;letter-spacing:-.015em}
+.sec-row .right{font-family:var(--mono);font-size:12px;color:var(--mute)}
+.sec-row .num{font-family:var(--mono);font-size:12px;color:var(--green);margin-right:10px}
+
+/* 关键时刻（复用 finding 卡） */
+.findings{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.finding{background:var(--card);border:1px solid var(--line-2);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.find-top{display:flex;align-items:center;gap:8px}
+.sev{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;padding:3px 8px;border-radius:999px;border:1px solid}
+.find-top span{font-family:var(--mono);font-size:11px;color:var(--mute);margin-left:auto}
+.finding h3{margin:0;font-size:15.5px;font-weight:600;line-height:1.4}
+.finding p{margin:0;font-size:13px;line-height:1.6;color:var(--ink-3)}
+.finding .fix{font-size:12.5px;line-height:1.55;color:#3F4708;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:10px;padding:10px 12px}
+.finding .fix b{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#4A5207;margin-right:6px}
+.affected{margin-top:auto;font-family:var(--mono);font-size:11px;color:var(--mute);padding-top:10px;border-top:1px dashed var(--line)}
+
+/* 话术升级（复用 rewrite 卡） */
+.rw{background:var(--card);border:1px solid var(--line-2);border-radius:14px;overflow:hidden}
+.rw + .rw{margin-top:12px}
+.rw-head{display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--card-soft);border-bottom:1px solid var(--line);font-size:12.5px;flex-wrap:wrap}
+.rw-head .id{font-family:var(--mono);font-weight:600;color:var(--green)}
+.rw-head .sec{color:var(--ink-2);font-weight:500}
+.rw-head .tag{font-family:var(--mono);font-size:10.5px;color:var(--mute);padding:2px 8px;border:1px solid var(--line-3);border-radius:999px}
+.rw-head .imp{margin-left:auto;font-family:var(--mono);font-size:12px;font-weight:700;color:#4A5207}
+.rw-grid{display:grid;grid-template-columns:1fr 1fr}
+.rw-cell{padding:16px 18px}
+.rw-cell + .rw-cell{border-left:1px solid var(--line)}
+.rw-cell small{display:block;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px}
+.rw-cell.before small{color:var(--orange)}
+.rw-cell.after{background:#FCFDF4}
+.rw-cell.after small{color:#4A5207}
+.rw-cell p{margin:0;font-size:13.5px;line-height:1.6;color:var(--ink-2)}
+.rw-cell.after p{color:#3F4708}
+.mini-chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.mini-chips span{font-family:var(--mono);font-size:10px;font-weight:600;padding:2.5px 8px;border-radius:999px;border:1px solid}
+.mc-issue{color:var(--orange);background:var(--orange-bg);border-color:var(--orange-bd)}
+.mc-win{color:#4A5207;background:var(--green-bg);border-color:var(--green-bd)}
+
+/* 追问深度（复用 bucket 卡） */
+.buckets{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.bucket{background:var(--card);border:1px solid var(--line-2);border-radius:14px;padding:18px}
+.bucket-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.bucket-h b{font-size:14px;font-weight:600}
+.bucket-h span{font-family:var(--mono);font-size:11.5px;color:var(--mute)}
+.bk-chips{display:flex;flex-wrap:wrap;gap:7px}
+.bk-chips span{font-size:12px;font-weight:500;padding:5px 11px;border-radius:999px;border:1px solid}
+.recommend{margin-top:14px;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:14px;padding:18px 20px}
+.recommend b{display:block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);margin-bottom:7px}
+.recommend p{margin:0;font-size:13.5px;line-height:1.7;color:#6B5414}
+
+/* 下一步（修正版深色面板） */
+.next{margin-top:56px;background:var(--ink);color:#F2F4F6;border-radius:18px;padding:40px 44px;display:flex;align-items:center;gap:32px;flex-wrap:wrap}
+.next .eyebrow{color:var(--mint);margin-bottom:8px}
+.next h2{margin:0;font-size:24px;font-weight:600;letter-spacing:-.015em;max-width:520px}
+.next p{margin:10px 0 0;font-size:13.5px;line-height:1.65;color:#B3B3AF;max-width:520px}
+.next-btns{margin-left:auto;display:flex;flex-direction:column;gap:10px}
+.next .btn-primary{background:var(--mint);color:var(--ink);box-shadow:none}
+.next .btn-primary:hover{background:#EFF970}
+.next .btn-ghost{background:transparent;color:#F2F4F6;border-color:#3F3F3D}
+.next .btn-ghost:hover{border-color:var(--mint)}
+
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;font-size:13px;padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:99;box-shadow:0 14px 30px -10px rgba(31,31,31,.35)}
+#toast.show{opacity:1;transform:translateX(-50%)}
+
+@media (max-width:980px){
+  .steps{display:none}
+  .sum-grid{grid-template-columns:1fr}
+  .findings,.buckets{grid-template-columns:1fr}
+  .rw-grid{grid-template-columns:1fr}
+  .rw-cell + .rw-cell{border-left:none;border-top:1px solid var(--line)}
+  .next{padding:32px 26px}
+  .next-btns{margin-left:0;flex-direction:row;flex-wrap:wrap}
+}
+@media (max-width:680px){
+  .wrap{padding-left:20px;padding-right:20px}
+  .tool-label{display:none}
+  .sum-right{grid-template-columns:1fr}
+}
+@media print{
+  nav,.next,.rep-bar .btns,#toast{display:none!important}
+  body{background:#fff}
+  .card,.finding,.rw,.bucket{box-shadow:none;break-inside:avoid}
+  #review .wrap{padding-top:0}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="OfferMate_Landing.html" aria-label="OfferMate 首页">
+      <svg width="26" height="26" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#1F1F1F"/><circle cx="13" cy="15" r="6.2" fill="none" stroke="#FFF" stroke-width="1.6"/><path d="M 9.5 18.5 L 20 8 M 20 8 L 14.5 8 M 20 8 L 20 13.5" stroke="#E4F222" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <b>OfferMate</b>
+    </a>
+    <span class="tool-label" data-i18n="tool_label"></span>
+    <div class="steps" aria-hidden="true">
+      <span class="stp on"><i>✓</i><span data-i18n="step1"></span></span>
+      <span class="stp-line"></span>
+      <span class="stp on"><i>✓</i><span data-i18n="step2"></span></span>
+      <span class="stp-line"></span>
+      <span class="stp on"><i>3</i><span data-i18n="step3"></span></span>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button id="zhBtn" class="on" onclick="setLang('zh')">中文</button>
+      <button id="enBtn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<section id="review">
+  <div class="wrap">
+
+    <div class="rep-bar">
+      <div>
+        <div class="eyebrow" data-i18n="eyebrow"></div>
+        <h1 data-i18n="title"></h1>
+        <div class="rep-meta" id="meta"></div>
+      </div>
+      <div class="btns" style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="toast()" data-i18n="transcript_btn"></button>
+        <button class="btn btn-ghost btn-sm" onclick="window.print()" data-i18n="export_btn"></button>
+      </div>
+    </div>
+
+    <!-- 总览：分数 + 增量 + 双雷达对比 -->
+    <div class="card">
+      <div class="sum-grid">
+        <div>
+          <div class="eyebrow" style="margin-bottom:2px;color:var(--mute)" data-i18n="overall_label"></div>
+          <div class="big-score"><b>78</b><span>/100</span><span class="delta" data-i18n="overall_delta"></span></div>
+          <div class="level"><i></i><span data-i18n="level_tag"></span></div>
+          <p class="blurb" data-i18n="summary"></p>
+          <div class="kpis">
+            <div class="kpi warn"><small data-i18n="kpi_followups"></small><b>5</b><span data-i18n="kpi_followups_unit"></span></div>
+            <div class="kpi ok"><small data-i18n="kpi_highlights"></small><b>2</b><span data-i18n="kpi_highlights_unit"></span></div>
+          </div>
+        </div>
+        <div>
+          <div class="sum-right">
+            <div>
+              <svg class="radar" viewBox="0 0 320 320" aria-hidden="true">
+                <polygon class="grid" points="160,50 264.62,126.01 224.68,248.99 95.32,248.99 55.38,126.01"/>
+                <polygon class="grid" points="160,77.5 238.46,134.51 208.51,226.74 111.49,226.74 81.54,134.51"/>
+                <polygon class="grid" points="160,105 212.31,143 192.34,204.5 127.66,204.5 107.69,143"/>
+                <polygon class="grid" points="160,132.5 186.15,151.5 176.17,182.25 143.83,182.25 133.85,151.5"/>
+                <line class="grid" x1="160" y1="160" x2="160" y2="50"/><line class="grid" x1="160" y1="160" x2="264.62" y2="126.01"/><line class="grid" x1="160" y1="160" x2="224.68" y2="248.99"/><line class="grid" x1="160" y1="160" x2="95.32" y2="248.99"/><line class="grid" x1="160" y1="160" x2="55.38" y2="126.01"/>
+                <!-- 上一场（虚线，75/79/66/75/63） -->
+                <polygon class="shape prev" points="160,77.50 242.65,133.15 202.67,218.73 111.51,226.74 94.09,138.59"/>
+                <!-- 本场（80/82/68/84/71） -->
+                <polygon class="shape" points="160,72.00 245.79,132.13 203.97,220.51 105.69,234.75 85.72,135.87"/>
+                <circle cx="160" cy="72.00" r="3.5"/><circle cx="245.79" cy="132.13" r="3.5"/><circle cx="203.97" cy="220.51" r="3.5"/><circle cx="105.69" cy="234.75" r="3.5"/><circle cx="85.72" cy="135.87" r="3.5"/>
+                <text x="160" y="36" text-anchor="middle" data-i18n="dim_1"></text>
+                <text x="288" y="122" text-anchor="middle" data-i18n="dim_2"></text>
+                <text x="232" y="274" text-anchor="middle" data-i18n="dim_3"></text>
+                <text x="88" y="274" text-anchor="middle" data-i18n="dim_4"></text>
+                <text x="34" y="122" text-anchor="middle" data-i18n="dim_5"></text>
+              </svg>
+              <div class="radar-legend">
+                <span><i></i><span data-i18n="legend_now"></span></span>
+                <span class="prev"><i></i><span data-i18n="legend_prev"></span></span>
+              </div>
+            </div>
+            <div class="dim-rows" id="dimRows"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 关键时刻 -->
+    <div class="sec-row">
+      <h2><span class="num">02 · </span><span data-i18n="moments_title"></span></h2>
+      <span class="right" data-i18n="moments_sub"></span>
+    </div>
+    <div class="findings" id="moments"></div>
+
+    <!-- 03 话术升级 -->
+    <div class="sec-row">
+      <h2><span class="num">03 · </span><span data-i18n="upgrades_title"></span></h2>
+      <span class="right" data-i18n="upgrades_sub"></span>
+    </div>
+    <div id="upgrades"></div>
+
+    <!-- 04 追问深度 -->
+    <div class="sec-row">
+      <h2><span class="num">04 · </span><span data-i18n="depth_title"></span></h2>
+      <span class="right" data-i18n="depth_sub"></span>
+    </div>
+    <div class="buckets" id="buckets"></div>
+    <div class="recommend"><b data-i18n="recommend_label"></b><p data-i18n="recommend_body"></p></div>
+
+    <!-- 下一步 -->
+    <div class="next">
+      <div>
+        <div class="eyebrow" data-i18n="next_eyebrow"></div>
+        <h2 data-i18n="next_title"></h2>
+        <p data-i18n="next_sub"></p>
+      </div>
+      <div class="next-btns">
+        <button class="btn btn-primary btn-lg" onclick="toast()"><span data-i18n="next_primary"></span> →</button>
+        <button class="btn btn-ghost btn-lg" onclick="toast()" data-i18n="next_secondary"></button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div id="toast" role="status"></div>
+
+<script>
+document.documentElement.classList.add('js');
+const I18N = {
+zh:{
+  tool_label:'面试复盘 · 体验',step1:'诊断',step2:'模拟面试',step3:'复盘',
+  eyebrow:'STEP 03 · 面试复盘',title:'面试复盘报告',
+  meta:['产品运营实习 · 字节跳动','第 2 场 · 8 题 · 23 分钟','压力面 开启','Demo · 模拟数据'],
+  transcript_btn:'查看对话记录',export_btn:'导出 PDF',
+  overall_label:'本场得分',overall_delta:'较上一场 +6',
+  level_tag:'良好 · 主线答得稳，追问下细节还撑不住',
+  summary:'开场与项目主线表达清晰，STAR 完整度比上一场明显提升；丢分集中在追问第 2–3 层——数据口径、样本量、个人贡献占比被问到时开始含糊。岗位匹配题（SQL、A/B 实验）仍是硬伤。',
+  kpi_followups:'被追问',kpi_followups_unit:'次 / 8 题',
+  kpi_highlights:'高光回答',kpi_highlights_unit:'个',
+  dim_1:'表达',dim_2:'逻辑',dim_3:'岗位匹配',dim_4:'案例质量',dim_5:'追问应对',
+  legend_now:'本场',legend_prev:'上一场',
+  dims:[
+    {label:'表达',score:80,delta:'+5',c:'#1F1F1F',note:'口头禅"然后"明显减少'},
+    {label:'逻辑',score:82,delta:'+3',c:'#1F1F1F',note:'因果链清楚，时间线稳'},
+    {label:'岗位匹配',score:68,delta:'+2',c:'#9A7A1A',note:'SQL / 实验题仍答不实'},
+    {label:'案例质量',score:84,delta:'+9',c:'#1F1F1F',note:'社区项目讲出了细节'},
+    {label:'追问应对',score:71,delta:'+8',c:'#9A7A1A',note:'L2 开始数据含糊'}],
+  moments_title:'三个关键时刻',moments_sub:'1 个高光 · 2 个翻车点，按影响排序',
+  moments:[
+    {kind:'hl',tag:'高光',dim:'案例质量',title:'社区项目的数字链路讲完整了',
+     body:'Q2 里你完整说出"日均 2.4k 触达 → A/B 两版文案 → 7 日留存 +11%"，并主动给了对照组——这是全场最接近 offer 水平的回答。',
+     fix:'保持：把"数字 + 口径 + 对照"这套结构复制到其余项目题。',affected:'发生在 Q2 · 一遍过'},
+    {kind:'miss',tag:'翻车',dim:'追问应对',title:'"11% 怎么算的"——L2 追问当场卡壳',
+     body:'被问到留存口径（7 日？次日？）和样本量时，回答"记不太清，大概是系统统计的"。数字讲不出口径，前面的可信度会整体崩掉。',
+     fix:'给简历里每个数字配三件套：口径、样本量、对照——背不下来的数字就别写。',affected:'发生在 Q3 · 追问 L2'},
+    {kind:'weak',tag:'待改进',dim:'岗位匹配',title:'SQL 题用"学过数据库"带过',
+     body:'JD 点名 SQL，你的回答停在课程名，没有给出任何一次真实使用场景。',
+     fix:'准备一个 60 秒 SQL 小案例：3 张表、一条 join、查出了什么结论。',affected:'发生在 Q6 · 追问 L1'}],
+  upgrades_title:'逐题话术升级',upgrades_sub:'选 3 个提升最大的，照着练',
+  before_label:'你的回答（实录）',after_label:'更好的说法',
+  upgrades:[
+    {id:'Q-03',sec:'项目深挖',tag:'追问 L2',imp:'+14 分',
+     before:'呃，具体口径我记不太清了，应该是系统后台统计的 7 日留存吧，样本量挺大的。',
+     after:'口径是 7 日留存，新用户随机分流各 750 人；A 版 31.2%、B 版 34.7%，相对提升 11%。看板是我用 Excel 拉的，每天早上更新。',
+     issues:['数据含糊','口头禅'],wins:['口径清楚','有样本量','主动补细节']},
+    {id:'Q-06',sec:'技能验证',tag:'追问 L1',imp:'+10 分',
+     before:'SQL 的话我们数据库课学过，平时用得不算多，但上手应该没问题。',
+     after:'课程大作业里我建了 3 张表存社团报名数据，常用 join 和 group by 拉转化漏斗；实习时也用它复核过一次活动名单去重。',
+     issues:['无场景','自降可信'],wins:['真实场景','动作具体']},
+    {id:'Q-08',sec:'反问环节',tag:'L1',imp:'+6 分',
+     before:'我暂时没有什么问题了，谢谢面试官。',
+     after:'想请教一下：这个岗位前 3 个月，衡量新人做得好的 1–2 个指标会是什么？我想对照着准备。',
+     issues:['放弃送分题'],wins:['展示目标感','留下记忆点']}],
+  depth_title:'追问深度分布',depth_sub:'8 题 · 被追问 5 次 · 最深 L3',
+  buckets:[
+    {title:'一遍过',meta:'3 / 8 题',k:'ok',items:['Q1 自我介绍','Q2 项目主线','Q5 团队协作']},
+    {title:'L2 后过关',meta:'3 / 8 题',k:'weak',items:['Q4 失败经历','Q7 抗压情景','Q8 反问环节']},
+    {title:'L3 仍未答实',meta:'2 / 8 题',k:'miss',items:['Q3 数据口径','Q6 SQL 验证']}],
+  recommend_label:'下场之前',
+  recommend_body:'只准备两件事：(1) 给简历里每个数字配齐"口径、样本量、对照"三件套，L2 追问就不会慌；(2) 把 SQL 小案例练到 60 秒讲完。这两处补上，这套题的预估得分能到 85+。',
+  next_eyebrow:'继续练',next_title:'同一个岗位，换一套题再面一场',
+  next_sub:'题目不重复，追问会更刁钻。面完直接对比两份复盘的雷达图，看进步落在哪个维度。',
+  next_primary:'再练一场',next_secondary:'回去改简历',
+  toast_msg:'该功能在 MVP 第 2 周上线——敬请期待'
+},
+en:{
+  tool_label:'Interview debrief · demo',step1:'Diagnose',step2:'Mock interview',step3:'Debrief',
+  eyebrow:'STEP 03 · Interview debrief',title:'Interview debrief',
+  meta:['Product Ops Intern · ByteDance','Session 2 · 8 Qs · 23 min','Pressure ON','Demo · sample data'],
+  transcript_btn:'View transcript',export_btn:'Export PDF',
+  overall_label:'This session',overall_delta:'+6 vs last',
+  level_tag:'Good · solid mainline, details crack under follow-ups',
+  summary:'Opening and project mainline were clear; STAR completeness is visibly better than last session. Points were lost at follow-up layers 2–3 — metric definitions, sample sizes and your share of the work got vague. JD-fit questions (SQL, A/B) remain the weak spot.',
+  kpi_followups:'Follow-ups',kpi_followups_unit:'of 8 Qs',
+  kpi_highlights:'Highlights',kpi_highlights_unit:'answers',
+  dim_1:'Clarity',dim_2:'Logic',dim_3:'JD Fit',dim_4:'Examples',dim_5:'Follow-up',
+  legend_now:'This session',legend_prev:'Last session',
+  dims:[
+    {label:'Clarity',score:80,delta:'+5',c:'#1F1F1F',note:'Far fewer filler words'},
+    {label:'Logic',score:82,delta:'+3',c:'#1F1F1F',note:'Clear causality, steady timeline'},
+    {label:'JD Fit',score:68,delta:'+2',c:'#9A7A1A',note:'SQL / experiments still thin'},
+    {label:'Examples',score:84,delta:'+9',c:'#1F1F1F',note:'Community project got real detail'},
+    {label:'Follow-up',score:71,delta:'+8',c:'#9A7A1A',note:'Numbers blur at L2'}],
+  moments_title:'Three key moments',moments_sub:'1 highlight · 2 stumbles, by impact',
+  moments:[
+    {kind:'hl',tag:'Highlight',dim:'Examples',title:'The numbers chain finally landed',
+     body:'In Q2 you delivered "2.4k daily reach → two A/B copy variants → +11% 7-day retention" with a control group, unprompted — the closest to offer-level all session.',
+     fix:'Keep it: copy this "number + definition + baseline" structure to every project answer.',affected:'Q2 · passed in one'},
+    {kind:'miss',tag:'Stumble',dim:'Follow-up',title:'"How was that 11% measured?" — froze at L2',
+     body:'Asked about the retention window (7-day? next-day?) and sample size, you said "I don\'t quite remember, the system tracked it." A number without a definition drags down everything before it.',
+     fix:'Every resume number gets a trio: definition, sample size, baseline — if you can\'t recall the trio, cut the number.',affected:'Q3 · follow-up L2'},
+    {kind:'weak',tag:'To fix',dim:'JD Fit',title:'SQL answered with "took a database course"',
+     body:'The JD names SQL; your answer stopped at the course title with zero real usage.',
+     fix:'Prep a 60-second SQL story: 3 tables, one join, what it told you.',affected:'Q6 · follow-up L1'}],
+  upgrades_title:'Answer upgrades, per question',upgrades_sub:'Top 3 by gain — drill these',
+  before_label:'Your answer (transcript)',after_label:'Stronger version',
+  upgrades:[
+    {id:'Q-03',sec:'Project deep-dive',tag:'Follow-up L2',imp:'+14 pts',
+     before:'Uh, I don\'t remember the exact definition — probably 7-day retention from the backend, the sample was pretty big.',
+     after:'7-day retention; new users split 750/750. A: 31.2%, B: 34.7% — +11% relative. I pulled the dashboard in Excel, refreshed every morning.',
+     issues:['Vague data','Fillers'],wins:['Clear definition','Sample size','Volunteered detail']},
+    {id:'Q-06',sec:'Skill check',tag:'Follow-up L1',imp:'+10 pts',
+     before:'We covered SQL in the database course; I don\'t use it much but I\'d pick it up fine.',
+     after:'For the course project I built 3 tables of club sign-up data, used joins and group-by for a conversion funnel; at my internship I used it once to dedupe an event list.',
+     issues:['No scenario','Self-undercut'],wins:['Real scenario','Concrete actions']},
+    {id:'Q-08',sec:'Your questions',tag:'L1',imp:'+6 pts',
+     before:'No questions from me, thank you.',
+     after:'One question: in the first 3 months, what 1–2 metrics tell you a new hire is doing well? I\'d like to prepare against them.',
+     issues:['Free points wasted'],wins:['Shows intent','Memorable close']}],
+  depth_title:'Follow-up depth',depth_sub:'8 Qs · 5 follow-ups · deepest L3',
+  buckets:[
+    {title:'Passed in one',meta:'3 / 8',k:'ok',items:['Q1 Intro','Q2 Project mainline','Q5 Teamwork']},
+    {title:'Cleared after L2',meta:'3 / 8',k:'weak',items:['Q4 Failure story','Q7 Pressure scenario','Q8 Your questions']},
+    {title:'Still vague at L3',meta:'2 / 8',k:'miss',items:['Q3 Metric definitions','Q6 SQL check']}],
+  recommend_label:'Before next session',
+  recommend_body:'Two things only: (1) give every resume number its trio — definition, sample size, baseline — and L2 stops being scary; (2) drill the 60-second SQL story. Fix both and this question set projects to 85+.',
+  next_eyebrow:'Keep drilling',next_title:'Same role, fresh question set',
+  next_sub:'No repeated questions; follow-ups get sharper. Afterwards, compare the two radar charts and see exactly where you improved.',
+  next_primary:'Run another session',next_secondary:'Back to the resume',
+  toast_msg:'Shipping in MVP week 2 — stay tuned'
+}};
+
+const C={ok:{bg:'#F7FAD9',bd:'#DCE85A',fg:'#4A5207'},weak:{bg:'#F8F1DE',bd:'#EBDCAE',fg:'#8A6A1F'},miss:{bg:'#FBE9E2',bd:'#EFC7B6',fg:'#B8401F'},hl:{bg:'#E4F222',bd:'#C9D81C',fg:'#1F1F1F'}};
+let lang='zh';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function render(){
+  const t=I18N[lang];
+  document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+  document.title=lang==='zh'?'OfferMate — 面试复盘报告':'OfferMate — Interview debrief';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(typeof t[k]==='string')el.textContent=t[k];});
+  document.getElementById('zhBtn').classList.toggle('on',lang==='zh');
+  document.getElementById('enBtn').classList.toggle('on',lang==='en');
+
+  document.getElementById('meta').innerHTML=t.meta.map(m=>`<span>${esc(m)}</span>`).join('<span>·</span>');
+
+  document.getElementById('dimRows').innerHTML=t.dims.map(d=>
+    `<div class="dim-row"><div class="t"><b>${esc(d.label)}</b><span style="color:${d.c}">${d.score} <span style="color:var(--faint);font-weight:400">/100</span><span class="d">${d.delta}</span></span></div>
+     <div class="bar"><i style="--w:${d.score}%;background:${d.c}"></i></div><div class="dim-note">${esc(d.note)}</div></div>`).join('');
+
+  document.getElementById('moments').innerHTML=t.moments.map(m=>{const c=C[m.kind];
+    return `<div class="finding"><div class="find-top"><span class="sev" style="color:${c.fg};background:${c.bg};border-color:${c.bd}">${esc(m.tag)}</span><span>${esc(m.dim)}</span></div>
+    <h3>${esc(m.title)}</h3><p>${esc(m.body)}</p><div class="fix"><b>${lang==='zh'?'怎么做':'Do this'}</b>${esc(m.fix)}</div><div class="affected">${esc(m.affected)}</div></div>`;}).join('');
+
+  document.getElementById('upgrades').innerHTML=t.upgrades.map(u=>
+    `<div class="rw"><div class="rw-head"><span class="id">${u.id}</span><span class="sec">${esc(u.sec)}</span><span class="tag">${esc(u.tag)}</span><span class="imp">${esc(u.imp)} ↑</span></div>
+     <div class="rw-grid">
+       <div class="rw-cell before"><small>${esc(t.before_label)}</small><p>${esc(u.before)}</p><div class="mini-chips">${u.issues.map(i=>`<span class="mc-issue">${esc(i)}</span>`).join('')}</div></div>
+       <div class="rw-cell after"><small>${esc(t.after_label)}</small><p>${esc(u.after)}</p><div class="mini-chips">${u.wins.map(w=>`<span class="mc-win">${esc(w)}</span>`).join('')}</div></div>
+     </div></div>`).join('');
+
+  document.getElementById('buckets').innerHTML=t.buckets.map(b=>{const c=C[b.k];
+    return `<div class="bucket"><div class="bucket-h"><b>${esc(b.title)}</b><span>${esc(b.meta)}</span></div>
+     <div class="bk-chips">${b.items.map(i=>`<span style="color:${c.fg};background:${c.bg};border-color:${c.bd}">${esc(i)}</span>`).join('')}</div></div>`;}).join('');
+}
+function setLang(l){lang=l;render();}
+function toast(){
+  const el=document.getElementById('toast');
+  el.textContent=I18N[lang].toast_msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove('show'),2600);
+}
+render();
+</script>
+</body>
+</html>
