@@ -28,11 +28,11 @@ const EXAMPLE: Record<Lang, unknown> = {
     ],
     kpi: { findings_count: 5, rewrites_count: 8 },
     findings: [
-      { id: "F-01", severity: "高", dimension: "表达", basis: "Harvard·MIT 规范 · 强动词", title: "「负责/协助」过多，看不出贡献", body: "「负责日常运营工作」没说明你具体做了什么", suggestion: "改为「主导 3 场新人引导活动，7 日留存 +11%」", affected: "影响 3 条经历" },
-      { id: "F-02", severity: "中", dimension: "岗位匹配", basis: "岗位技能库 · 硬技能缺口", title: "JD 要求的 SQL 未出现", body: "JD 点名 SQL，简历完全没提", suggestion: "补一句「用 SQL 清洗 1.2 万条数据，产出 3 张看板」", affected: "匹配度 -14 分" },
+      { id: "F-01", severity: "高", dimension: "表达", basis: "Harvard·MIT 规范 · 强动词开头/量化结果", title: "「负责/协助」过多，看不出贡献", body: "「负责日常运营工作」没说明你具体做了什么", suggestion: "改为「主导 N 场新人引导活动，通过 A/B 测试优化文案，使 7 日留存提升 X%（替换为你的真实数据）」", affected: "影响 3 条经历" },
+      { id: "F-02", severity: "中", dimension: "岗位匹配", basis: "岗位技能库 · 硬技能缺口", title: "JD 要求的 SQL 未出现", body: "JD 点名 SQL，简历完全没提", suggestion: "补一句「用 SQL 清洗约 X 万条数据，产出 N 张监控看板（替换为你的真实数据）」", affected: "匹配度 -14 分" },
     ],
     rewrites: [
-      { id: "R-01", section: "实习 · 互联网公司", tag: "运营实习生", improvement: "+18 分", before: "负责日常运营工作，协助团队完成各项任务", after: "主导 3 场新人引导活动（日均触达 2.4k 用户），A/B 优化文案使 7 日留存 +11%", issues: ["动词无力", "无结果"], wins: ["量化结果", "方法学"] },
+      { id: "R-01", section: "实习 · 互联网公司", tag: "运营实习生", improvement: "+18 分", before: "负责日常运营工作，协助团队完成各项任务", after: "主导 N 场新人引导活动（日均触达约 X 名用户），通过 A/B 测试优化文案，使 7 日留存提升 Y%（替换为你的真实数据）", issues: ["动词无力", "无结果"], wins: ["量化结果", "方法学"] },
     ],
     jd_match: {
       overall: 68,
@@ -58,11 +58,11 @@ const EXAMPLE: Record<Lang, unknown> = {
     ],
     kpi: { findings_count: 5, rewrites_count: 8 },
     findings: [
-      { id: "F-01", severity: "高", dimension: "Clarity", basis: "Harvard·MIT · strong verbs", title: "Too many \"responsible/assisted\"", body: "\"Responsible for daily operations\" hides what you did", suggestion: "Rewrite as \"Led 3 onboarding events, +11% 7-day retention\"", affected: "Affects 3 bullets" },
-      { id: "F-02", severity: "中", dimension: "JD Fit", basis: "Job-skills DB · hard-skill gap", title: "SQL required by JD is missing", body: "The JD names SQL; the resume never mentions it", suggestion: "Add \"Cleaned 12k rows with SQL, built 3 dashboards\"", affected: "Match -14 pts" },
+      { id: "F-01", severity: "高", dimension: "Clarity", basis: "Harvard·MIT · strong verbs/quantify", title: "Too many \"responsible/assisted\"", body: "\"Responsible for daily operations\" hides what you did", suggestion: "Rewrite as \"Led N onboarding events; A/B-tested copy to lift 7-day retention by X% (replace with your real numbers)\"", affected: "Affects 3 bullets" },
+      { id: "F-02", severity: "中", dimension: "JD Fit", basis: "Job-skills DB · hard-skill gap", title: "SQL required by JD is missing", body: "The JD names SQL; the resume never mentions it", suggestion: "Add \"Used SQL to clean ~X rows and built N dashboards (replace with your real numbers)\"", affected: "Match -14 pts" },
     ],
     rewrites: [
-      { id: "R-01", section: "Intern · Internet Co.", tag: "Ops intern", improvement: "+18 pts", before: "Responsible for daily operations, assisted team with various tasks", after: "Led 3 onboarding events (2.4k DAU reach); A/B-tested copy lifted 7-day retention by 11%", issues: ["Weak verbs", "No result"], wins: ["Quantified", "Methodology"] },
+      { id: "R-01", section: "Intern · Internet Co.", tag: "Ops intern", improvement: "+18 pts", before: "Responsible for daily operations, assisted team with various tasks", after: "Led N onboarding events (~X DAU reach); A/B-tested copy to lift 7-day retention by Y% (replace with your real numbers)", issues: ["Weak verbs", "No result"], wins: ["Quantified", "Methodology"] },
     ],
     jd_match: {
       overall: 68,
@@ -79,7 +79,11 @@ const EXAMPLE: Record<Lang, unknown> = {
 
 function rubricText(lang: Lang): string {
   const r = RUBRIC[lang];
-  const sources = r.sources.map((s) => `- ${s.name}：${s.summary}`).join("\n");
+  const crit = lang === "zh" ? "评分细则" : "Criteria";
+  // 关键：把每类来源的 points（可操作评分细则）也注入，而不只是 name + summary
+  const sources = r.sources
+    .map((s) => `- ${s.name}：${s.summary}\n  ${crit}：${s.points.map((p) => `「${p}」`).join("；")}`)
+    .join("\n");
   const principles = r.principles.map((p) => `- ${p.label}：${p.desc}`).join("\n");
   return `评估依据（已转化为结构化 rubric，必须据此打分，不得凭感觉）：\n${sources}\n\n每条发现必须同时给出：\n${principles}`;
 }
@@ -95,15 +99,19 @@ export function buildDiagnosisMessages(resume: string, jd: string | undefined, l
 - dimensions 必须恰好 5 项，label 依次为 ${dims}。
 - findings 产出 3-6 条；rewrites 产出 3 条；jd_match.buckets 恰好 3 桶（硬性能力 / 软性偏好 / 隐性关键词）。
 - severity 只用 "高"/"中"/"低"；jd_match 里 status 只用 "命中"/"弱"/"缺失"。
-- 每条 finding：basis=命中的 rubric 标准；body=扣分原因并引用简历原文；suggestion=可直接照抄、带数字的改写。
-- 所有文本字段用${isZh ? "简体中文" : "英文"}。未提供 JD 时，从简历推断最可能岗位再做 jd_match。`
+- 每条 finding：basis 必须引用上述四类 rubric 之一并写明命中哪条细则；body=扣分原因并引用简历原文片段；suggestion=可直接照抄的改写。
+- 【禁止编造数字】改写(after)与建议(suggestion)里的数字只能来自简历原文。简历里没有的数字，一律用「X%」「N 场」「↑XX」这类占位符，并在该句末尾加「（替换为你的真实数据）」，绝不编造具体数值。
+- 【禁止套用示例】示例只用于约束 JSON 结构；不得把示例中的公司、岗位、活动或数字（如「字节」「7 日留存 +11%」「2.4k」）出现在你的输出里。
+- 所有文本字段用简体中文。未提供 JD 时，从简历推断最可能岗位再做 jd_match。`
     : `Strict requirements:
 - Output exactly ONE JSON object. No prose, no markdown fences.
 - Top-level keys must be exactly: overall_score, level_tag, summary, dimensions, kpi, findings, rewrites, jd_match, next_steps. Do not add or rename keys.
 - dimensions: exactly 5, labels in order ${dims}.
 - findings: 3-6 items; rewrites: 3 items; jd_match.buckets: exactly 3 (Hard skills / Soft signals / Hidden keywords).
 - severity uses only "高"/"中"/"低"; jd_match item status uses only "命中"/"弱"/"缺失".
-- Each finding: basis = the rubric standard it maps to; body = reason quoting the resume; suggestion = copy-paste-ready rewrite with numbers.
+- Each finding: basis MUST cite one of the four rubric sources above and name the specific criterion; body = reason quoting the resume; suggestion = copy-paste-ready rewrite.
+- [NO FABRICATED NUMBERS] Numbers in after/suggestion may only come from the resume itself. For any number not in the resume, use placeholders like "X%", "N events", "↑XX" and append "(replace with your real numbers)"; never invent specific figures.
+- [DO NOT REUSE THE EXAMPLE] The example only constrains JSON structure; never let its companies, roles, activities or numbers (e.g. "ByteDance", "+11% 7-day retention", "2.4k") appear in your output.
 - All text fields in English. If no JD is given, infer the most likely role from the resume, then do jd_match.`;
 
   const example = JSON.stringify(EXAMPLE[lang]);
