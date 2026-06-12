@@ -2,18 +2,79 @@
 
 import { useEffect, useRef, useState } from "react";
 import { INTERVIEW_I18N, type Lang } from "@/lib/interview-i18n";
+import type { InterviewTurn, InterviewMessage } from "@/lib/types";
 import "./interview.css";
 
 type Phase = "prep" | "prepload" | "chat" | "endload";
 type Msg = { who: "ai" | "me"; text: string; fu?: boolean; depth?: number; vague?: boolean };
+type Ctx = { resume: string; jd: string; role?: string };
+
+const CTX_KEY = "om:interview:ctx";
+const RESULT_KEY = "om:interview:result";
+
+/** 「用样例直接开始」用的内置上下文（含可被追问的具体声明） */
+const SAMPLE: Record<Lang, Ctx> = {
+  zh: {
+    role: "产品运营实习生 · 抖音电商",
+    resume: `王悦 · 求职意向：产品运营实习生
+教育：某大学 市场营销 本科 2022–2026
+实习：某 MCN 机构 · 达人运营实习生（2024.06–2024.09）
+- 负责 20+ 腰部达人的日常运营与活动对接
+- 主导一次直播带货专场，GMV 较上月提升约 30%
+- 参与社群拉新活动，7 日留存提升 11%
+项目：校园二手交易平台（课程项目）· 运营推广负责人
+技能：Excel、SQL（了解）、剪映、数据看板`,
+    jd: `产品运营实习生 · 抖音电商（字节跳动）
+- 负责达人/商家活动的策划与执行，跟踪 GMV、转化率等核心指标并复盘
+- 能用 SQL 取数、做基础数据分析
+- 较强的沟通协调与抗压能力
+- 加分：有直播电商 / 社群运营经验`,
+  },
+  en: {
+    role: "Product Ops Intern · Douyin e-Commerce",
+    resume: `Wang Yue · Target role: Product Ops Intern
+Education: BA Marketing, 2022–2026
+Internship: an MCN agency · Creator-ops intern (Jun–Sep 2024)
+- Ran daily ops and event coordination for 20+ mid-tier creators
+- Led one livestream sale; GMV up ~30% vs the prior month
+- Ran a community growth campaign; 7-day retention up 11%
+Project: campus second-hand marketplace (course project) · ops & growth lead
+Skills: Excel, SQL (basic), video editing, dashboards`,
+    jd: `Product Ops Intern · Douyin e-Commerce (ByteDance)
+- Plan and run creator/merchant campaigns; track GMV, conversion and debrief
+- Pull data with SQL and do basic analysis
+- Strong communication and resilience
+- Plus: livestream-commerce / community-ops experience`,
+  },
+};
+
+async function postJSON<T>(url: string, body: unknown, signal?: AbortSignal): Promise<T> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((data && data.error) || `HTTP ${res.status}`);
+  return data as T;
+}
+
+const toApi = (msgs: Msg[]): InterviewMessage[] =>
+  msgs.map((m) => ({ role: m.who === "ai" ? "interviewer" : "candidate", content: m.text }));
+
+const firstLine = (s?: string, n = 36) => {
+  const line = (s || "").split("\n").map((x) => x.trim()).find(Boolean) || "";
+  return line.length > n ? line.slice(0, n) + "…" : line;
+};
 
 export default function Interview() {
   const [lang, setLang] = useState<Lang>("zh");
   const [phase, setPhase] = useState<Phase>("prep");
-  const [empty, setEmpty] = useState(false);
+  const [ctx, setCtx] = useState<Ctx | null>(null);
   const [pressure, setPressure] = useState(false);
-  const [qi, setQi] = useState(0);
-  const [depth, setDepth] = useState(1);
+  const [qi, setQi] = useState(0); // 0-based：question_index - 1
+  const [depth, setDepth] = useState(1); // 1-based 展示：min(follow_up_depth+1, 3)
   const [thinking, setThinking] = useState(false);
   const [ended, setEnded] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -21,20 +82,38 @@ export default function Interview() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [prepStep, setPrepStep] = useState(0);
   const [endStep, setEndStep] = useState(0);
+  const [prepError, setPrepError] = useState(false);
+  const [sendError, setSendError] = useState(false);
+  const [booted, setBooted] = useState(false); // 读完 sessionStorage 前不渲染 prep，避免空态闪一下
 
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const briefRef = useRef<string>("");
+  const cursorRef = useRef<{ question_index: number; follow_up_depth: number } | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const t = INTERVIEW_I18N[lang];
   const isZh = lang === "zh";
 
   const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const clearTimers = () => { timersRef.current.forEach(clearTimeout); timersRef.current = []; };
   const later = (fn: () => void, ms: number) => { timersRef.current.push(setTimeout(fn, reduced() ? Math.min(ms, 150) : ms)); };
-  const pushMsg = (m: Msg) => setMessages((prev) => [...prev, m]);
+  const abort = () => { abortRef.current?.abort(); abortRef.current = null; };
 
-  // ?empty=1 看空状态
+  // 入口：?empty=1 强制空态；否则读诊断带过来的上下文
   useEffect(() => {
-    try { if (new URLSearchParams(window.location.search).get("empty") === "1") setEmpty(true); } catch { /* noop */ }
+    try {
+      if (new URLSearchParams(window.location.search).get("empty") !== "1") {
+        const raw = sessionStorage.getItem(CTX_KEY);
+        if (raw) {
+          const c = JSON.parse(raw);
+          if (c && typeof c.resume === "string" && c.resume.trim()) {
+            setCtx({ resume: c.resume, jd: typeof c.jd === "string" ? c.jd : "", role: c.role });
+            if (c.lang === "en" || c.lang === "zh") setLang(c.lang);
+          }
+        }
+      }
+    } catch { /* noop */ }
+    setBooted(true);
     return clearTimers;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -44,15 +123,12 @@ export default function Interview() {
     document.title = isZh ? "OfferMate — 模拟面试" : "OfferMate — Mock interview";
   }, [isZh]);
 
-  // 阶段切换回顶部
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
-  // 聊天有新消息/思考态 → 滚到底
   useEffect(() => {
     if (phase !== "chat") return;
     window.scrollTo({ top: document.body.scrollHeight, behavior: reduced() ? "auto" : "smooth" });
   }, [messages, thinking, phase]);
 
-  // textarea 自适应高度
   useEffect(() => {
     const ta = taRef.current;
     if (!ta) return;
@@ -60,63 +136,105 @@ export default function Interview() {
     ta.style.height = Math.min(ta.scrollHeight, 128) + "px";
   }, [input, phase]);
 
-  function aiSay(text: string, opt: { fu?: boolean; depth?: number } = {}, onDone?: () => void) {
-    setThinking(true);
-    later(() => {
-      pushMsg({ who: "ai", text, fu: opt.fu, depth: opt.depth });
-      setThinking(false);
-      taRef.current?.focus({ preventScroll: true });
-      onDone?.();
-    }, 900 + Math.random() * 600);
+  /** 把一轮 API 结果落到展示态（qi 0-based、depth 1-based 展示）+ 更新游标 */
+  function applyTurn(turn: InterviewTurn) {
+    setQi(Math.max(0, turn.question_index - 1));
+    setDepth(Math.min(turn.follow_up_depth + 1, 3));
+    cursorRef.current = { question_index: turn.question_index, follow_up_depth: turn.follow_up_depth };
   }
 
+  // ============ 准备：联网研究 JD → 第一题 ============
   function startPrep() {
+    if (!ctx) return;
+    abort();
     setPhase("prepload");
     setPrepStep(0);
+    setPrepError(false);
     later(() => setPrepStep(1), 900);
     later(() => setPrepStep(2), 1900);
-    later(startChat, 3000);
-  }
-  function cancelPrep() { clearTimers(); setPhase("prep"); }
-
-  function startChat() {
-    clearTimers();
-    setQi(0); setDepth(1); setEnded(false); setThinking(false); setMessages([]);
-    setPhase("chat");
-    aiSay(t.intro, {}, () => later(() => aiSay(t.bank[0].q), reduced() ? 100 : 700));
+    void prepareAndStart();
   }
 
+  async function prepareAndStart() {
+    if (!ctx) return;
+    const ac = new AbortController();
+    abortRef.current = ac;
+    try {
+      const prep = await postJSON<{ brief: string }>("/api/interview/prepare", { resume: ctx.resume, jd: ctx.jd, lang }, ac.signal);
+      briefRef.current = prep.brief || "";
+      const turn = await postJSON<InterviewTurn>("/api/interview", { resume: ctx.resume, jd: ctx.jd, brief: briefRef.current, pressure, messages: [], lang }, ac.signal);
+      clearTimers();
+      cursorRef.current = null;
+      setMessages([{ who: "ai", text: turn.reply, fu: false, depth: 0 }]);
+      applyTurn(turn);
+      setEnded(false);
+      setThinking(false);
+      setSendError(false);
+      setPhase("chat");
+      taRef.current?.focus({ preventScroll: true });
+    } catch (e) {
+      if ((e as Error)?.name === "AbortError") return;
+      clearTimers();
+      setPrepError(true);
+    }
+  }
+
+  function cancelPrep() { abort(); clearTimers(); setPrepError(false); setPhase("prep"); }
+
+  // ============ 对话轮次 ============
   function send() {
     if (thinking || ended) return;
     const v = input.trim();
     if (!v) return;
-    const q = t.bank[qi];
-    const threshold = pressure ? 60 : 40;
-    const isLast = qi === 7;
-    const vague = !isLast && (v.length < threshold || !/\d/.test(v));
-    const canFollow = vague && depth - 1 < q.fus.length;
-    pushMsg({ who: "me", text: v, vague: vague && canFollow });
+    const next = [...messages, { who: "me" as const, text: v }];
+    setMessages(next);
     setInput("");
-    if (canFollow) {
-      const fu = q.fus[depth - 1] + (pressure ? (isZh ? "" : " ") + t.pressure_suffix : "");
-      const nd = depth + 1;
-      setDepth(nd);
-      aiSay(fu, { fu: true, depth: nd });
-    } else {
-      const nq = qi + 1;
-      setQi(nq);
-      setDepth(1);
-      if (nq >= 8) { endInterview(); return; }
-      aiSay(t.bank[nq].q);
+    void askAI(next);
+  }
+
+  async function askAI(history: Msg[]) {
+    if (!ctx) return;
+    abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+    setThinking(true);
+    setSendError(false);
+    try {
+      const turn = await postJSON<InterviewTurn>("/api/interview", {
+        resume: ctx.resume, jd: ctx.jd, brief: briefRef.current, pressure,
+        messages: toApi(history), cursor: cursorRef.current ?? undefined, lang,
+      }, ac.signal);
+      setThinking(false);
+      // 给刚回答的那条用户气泡补上 vague 标记，再追加面试官这一句
+      setMessages((prev) => {
+        const out = prev.map((m, i) => (i === prev.length - 1 && m.who === "me" ? { ...m, vague: !!turn.vague } : m));
+        return [...out, { who: "ai", text: turn.reply, fu: turn.kind === "follow_up", depth: turn.follow_up_depth }];
+      });
+      applyTurn(turn);
+      taRef.current?.focus({ preventScroll: true });
+      if (turn.done) { setEnded(true); later(endInterview, 1600); }
+    } catch (e) {
+      if ((e as Error)?.name === "AbortError") return;
+      setThinking(false);
+      setSendError(true);
     }
   }
 
   function askEnd() { setShowConfirm(true); }
+
   function endInterview() {
+    abort();
     clearTimers();
     setEnded(true);
     setShowConfirm(false);
     setThinking(false);
+    // 把整场对话 + 上下文留给复盘（D13 /api/debrief 用）
+    try {
+      sessionStorage.setItem(RESULT_KEY, JSON.stringify({
+        resume: ctx?.resume ?? "", jd: ctx?.jd ?? "", brief: briefRef.current, pressure, lang,
+        messages: toApi(messages),
+      }));
+    } catch { /* noop */ }
     setPhase("endload");
     setEndStep(0);
     later(() => setEndStep(1), 1100);
@@ -149,6 +267,8 @@ export default function Interview() {
     );
   };
 
+  const roleText = ctx?.role || firstLine(ctx?.jd) || t.job_role;
+
   return (
     <>
       {/* =================== NAV =================== */}
@@ -174,7 +294,7 @@ export default function Interview() {
       </nav>
 
       {/* =================== 界面1 · 准备 =================== */}
-      {phase === "prep" && (
+      {phase === "prep" && booted && (
         <section id="phase-prep">
           <div className="wrap">
             <div className="prep-head">
@@ -182,11 +302,11 @@ export default function Interview() {
               <h1>{t.prep_title}</h1>
               <p>{t.prep_sub}</p>
             </div>
-            {!empty ? (
+            {ctx ? (
               <div className="prep-card">
                 <div className="job">
-                  <div className="job-row"><small>{t.job_role_label}</small><b>{t.job_role}</b></div>
-                  <div className="job-row"><small>{t.job_co_label}</small><span>{t.job_co}</span></div>
+                  <div className="job-row"><small>{t.job_role_label}</small><b>{roleText}</b></div>
+                  <div className="job-row"><small>{t.job_co_label}</small><span>{isZh ? "来自你的简历 + JD" : "From your resume + JD"}</span></div>
                   <span className="ctx-chip">✓ <span>{t.ctx_chip}</span></span>
                 </div>
                 <div className="prep-opts">
@@ -208,7 +328,7 @@ export default function Interview() {
                 <p>{t.empty_body}</p>
                 <div className="btns">
                   <a className="btn btn-primary btn-lg" href="/diagnose">{t.empty_primary}</a>
-                  <button className="btn btn-ghost btn-lg" onClick={() => setEmpty(false)}>{t.empty_secondary}</button>
+                  <button className="btn btn-ghost btn-lg" onClick={() => setCtx(SAMPLE[lang])}>{t.empty_secondary}</button>
                 </div>
               </div>
             )}
@@ -233,8 +353,20 @@ export default function Interview() {
                 ))}
               </div>
               <div className="load-foot">
-                <span>{t.prepload_foot}</span>
-                <a onClick={cancelPrep}>{t.cancel_btn}</a>
+                {prepError ? (
+                  <>
+                    <span style={{ color: "var(--bad, #B8401F)" }}>{isZh ? "准备失败，请重试" : "Prep failed, please retry"}</span>
+                    <span style={{ display: "flex", gap: 14 }}>
+                      <a onClick={startPrep}>{isZh ? "重试" : "Retry"}</a>
+                      <a onClick={cancelPrep}>{t.cancel_btn}</a>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span>{t.prepload_foot}</span>
+                    <a onClick={cancelPrep}>{t.cancel_btn}</a>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -268,6 +400,12 @@ export default function Interview() {
                   <p>{t.confirm_text(qi)}</p>
                   <button className="btn btn-primary btn-sm" onClick={endInterview}>{t.confirm_yes}</button>
                   <button className="btn btn-ghost btn-sm" onClick={() => setShowConfirm(false)}>{t.confirm_no}</button>
+                </div>
+              )}
+              {sendError && (
+                <div className="confirm-bar">
+                  <p>{isZh ? "刚才那一轮没成功，重试一下？" : "That turn failed — retry?"}</p>
+                  <button className="btn btn-primary btn-sm" onClick={() => askAI(messages)}>{isZh ? "重试" : "Retry"}</button>
                 </div>
               )}
               <div className="input-row">

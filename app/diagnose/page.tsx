@@ -459,7 +459,14 @@ export default function Diagnose() {
                 <p>{report.next_steps.subtitle}</p>
               </div>
               <div className="next-btns">
-                <a className="btn btn-primary btn-lg" href="/interview"><span>{t.next_btn_primary}</span> →</a>
+                <a
+                  className="btn btn-primary btn-lg"
+                  href="/interview"
+                  onClick={() => {
+                    // 把简历 + JD 带进模拟面试（同源 sessionStorage；面试页据此调用真接口）
+                    try { sessionStorage.setItem("om:interview:ctx", JSON.stringify({ resume, jd, lang })); } catch { /* noop */ }
+                  }}
+                ><span>{t.next_btn_primary}</span> →</a>
                 <button className="btn btn-ghost btn-lg" onClick={backToInput}>{t.next_btn_secondary}</button>
               </div>
             </div>
