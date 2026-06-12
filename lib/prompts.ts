@@ -43,7 +43,6 @@ const EXAMPLE: Record<Lang, unknown> = {
       ],
       recommendation: "优先补 SQL 与数据看板，把已有运营经历往「数据 / 实验」方向重写。",
     },
-    next_steps: { title: "改完简历，来一场针对性模拟面试", subtitle: "按目标岗位出题、追问 2-3 层，给一份可对比复盘。" },
   },
   en: {
     overall_score: 82,
@@ -73,7 +72,6 @@ const EXAMPLE: Record<Lang, unknown> = {
       ],
       recommendation: "Add SQL and dashboards first; reframe existing ops work around data / experiments.",
     },
-    next_steps: { title: "Fix the resume, then run a targeted mock interview", subtitle: "Role-specific questions, 2-3 follow-up layers, a comparable debrief." },
   },
 };
 
@@ -95,7 +93,7 @@ export function buildDiagnosisMessages(resume: string, jd: string | undefined, l
   const rules = isZh
     ? `严格要求：
 - 只输出一个 JSON 对象，不要任何解释、不要 markdown 代码块。
-- 顶层字段必须且只能是：overall_score, level_tag, summary, dimensions, kpi, findings, rewrites, jd_match, next_steps。不得新增/改名字段。
+- 顶层字段必须且只能是：overall_score, level_tag, summary, dimensions, kpi, findings, rewrites, jd_match。不得新增/改名字段。
 - dimensions 必须恰好 5 项，label 依次为 ${dims}。
 - findings 产出 3-6 条；rewrites 产出 3 条；jd_match.buckets 恰好 3 桶（硬性能力 / 软性偏好 / 隐性关键词）。
 - severity 只用 "高"/"中"/"低"；jd_match 里 status 只用 "命中"/"弱"/"缺失"。
@@ -105,7 +103,7 @@ export function buildDiagnosisMessages(resume: string, jd: string | undefined, l
 - 所有文本字段用简体中文。未提供 JD 时，从简历推断最可能岗位再做 jd_match。`
     : `Strict requirements:
 - Output exactly ONE JSON object. No prose, no markdown fences.
-- Top-level keys must be exactly: overall_score, level_tag, summary, dimensions, kpi, findings, rewrites, jd_match, next_steps. Do not add or rename keys.
+- Top-level keys must be exactly: overall_score, level_tag, summary, dimensions, kpi, findings, rewrites, jd_match. Do not add or rename keys.
 - dimensions: exactly 5, labels in order ${dims}.
 - findings: 3-6 items; rewrites: 3 items; jd_match.buckets: exactly 3 (Hard skills / Soft signals / Hidden keywords).
 - severity uses only "高"/"中"/"低"; jd_match item status uses only "命中"/"弱"/"缺失".
