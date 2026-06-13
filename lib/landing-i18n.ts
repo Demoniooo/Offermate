@@ -55,6 +55,7 @@ export const LANDING_I18N = {
     cta_btn_primary: "开始诊断我的简历", cta_btn_secondary: "看样例报告",
     cta_meta_1: "无需注册", cta_meta_2: "简历不存储", cta_meta_3: "免费版每月 1 次",
     footer_tagline: "OfferMate · 面向校招学生的 AI 求职教练。让求职反馈不再昂贵。",
+    footer_contact: "反馈 / 联系我们",
     footer_cols: [
       { title: "产品", items: ["简历诊断", "模拟面试", "JD 匹配分析", "复盘报告"] },
       { title: "价格", items: ["免费版", "冲刺包 ¥39.9/季", "会员 ¥19.9/月", "院校合作"] },
@@ -113,6 +114,7 @@ export const LANDING_I18N = {
     cta_btn_primary: "Diagnose my resume", cta_btn_secondary: "See a sample",
     cta_meta_1: "No signup", cta_meta_2: "Never stored", cta_meta_3: "1 free / month",
     footer_tagline: "OfferMate — an AI job-search coach for college students. Making feedback affordable.",
+    footer_contact: "Feedback / contact",
     footer_cols: [
       { title: "Product", items: ["Resume diagnosis", "Mock interview", "JD analysis", "Debrief report"] },
       { title: "Pricing", items: ["Free", "Sprint pack ¥39.9/q", "Member ¥19.9/mo", "For schools"] },

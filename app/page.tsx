@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import { LANDING_I18N, JD_COLORS, type Lang } from "@/lib/landing-i18n";
+import { FEEDBACK_URL } from "@/lib/config";
 import { RUBRIC } from "@/lib/rubric";
 import "./landing.css";
 
@@ -367,12 +368,16 @@ export default function Home() {
               <span>OfferMate</span>
             </a>
             <p className="tag">{t.footer_tagline}</p>
-            <p className="mail">hi@offermate.example</p>
+            <a className="mail" href={FEEDBACK_URL} target="_blank" rel="noopener noreferrer">{t.footer_contact}</a>
           </div>
           {t.footer_cols.map((col, i) => (
             <div className="fcol" key={i}>
               <h5>{col.title}</h5>
-              {col.items.map((it, j) => <a href="#" key={j}>{it}</a>)}
+              {col.items.map((it, j) => {
+                // 反馈/内测/合作类链接指向问卷，其余暂留锚点
+                const fb = /反馈|内测|合作|feedback|beta|partner/i.test(it);
+                return <a href={fb ? FEEDBACK_URL : "#"} target={fb ? "_blank" : undefined} rel={fb ? "noopener noreferrer" : undefined} key={j}>{it}</a>;
+              })}
             </div>
           ))}
         </div>

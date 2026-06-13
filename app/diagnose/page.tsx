@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { DIAGNOSIS_I18N, SEV_COLORS, type Lang } from "@/lib/diagnosis-i18n";
 import { mockReport } from "@/lib/mock";
+import { maskPII } from "@/lib/mask";
 import type { DiagnosisReport, Severity, JDStatus } from "@/lib/types";
 import "./diagnose.css";
 
@@ -79,7 +80,7 @@ export default function Diagnose() {
       const res = await fetch("/api/diagnose", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resume: resume.trim(), jd: jd.trim() || undefined, lang }),
+        body: JSON.stringify({ resume: anon ? maskPII(resume.trim()) : resume.trim(), jd: jd.trim() || undefined, lang }),
         signal: ac.signal,
       });
       if (ac.signal.aborted) return; // 已被取消/被新请求取代：丢弃结果
@@ -251,6 +252,7 @@ export default function Diagnose() {
                   <div className="tips">
                     <span>ⓘ <span>{t.tip_1}</span></span>
                     <span>· <span>{t.tip_2}</span></span>
+                    <span>🔒 <span>{t.pii_warn}</span></span>
                   </div>
                 </div>
                 <div className="field">
@@ -463,8 +465,8 @@ export default function Diagnose() {
                   className="btn btn-primary btn-lg"
                   href="/interview"
                   onClick={() => {
-                    // 把简历 + JD 带进模拟面试（同源 sessionStorage；面试页据此调用真接口）
-                    try { sessionStorage.setItem("om:interview:ctx", JSON.stringify({ resume, jd, lang })); } catch { /* noop */ }
+                    // 把简历 + JD 带进模拟面试（同源 sessionStorage；面试页据此调用真接口）。脱敏开则带掩码版
+                    try { sessionStorage.setItem("om:interview:ctx", JSON.stringify({ resume: anon ? maskPII(resume) : resume, jd, lang })); } catch { /* noop */ }
                   }}
                 ><span>{t.next_btn_primary}</span> →</a>
                 <button className="btn btn-ghost btn-lg" onClick={backToInput}>{t.next_btn_secondary}</button>

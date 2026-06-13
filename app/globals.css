@@ -56,6 +56,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip; /* 防手机端横向溢出；用 clip 不破坏 sticky 的 .status/.dock */
 }
 
 html,

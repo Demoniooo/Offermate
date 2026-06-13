@@ -150,6 +150,17 @@ nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-f
   .tool-label{display:none}
   .sum-right{grid-template-columns:1fr}
 }
+@media (max-width:480px){
+  .wrap{padding-left:16px;padding-right:16px}
+  .nav-in{gap:10px}
+  .lang button{padding:8px 12px}
+  .rep-bar{flex-wrap:wrap;gap:14px}
+  .big-score b{font-size:68px}
+  .radar text{font-size:15px}
+  .next{padding:26px 20px}
+  .next-btns{width:100%}
+  .next-btns .btn{flex:1;justify-content:center}
+}
 @media print{
   nav,.next,.rep-bar .btns,#toast{display:none!important}
   body{background:#fff}

@@ -136,3 +136,10 @@ nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-f
   .status .lv .lv-word{display:none}
   .bubble{max-width:86%}
 }
+@media (max-width:480px){
+  .wrap{padding-left:16px;padding-right:16px}
+  .nav-in{gap:10px}
+  .lang button{padding:8px 12px}
+  .dock-in{padding:0 16px}
+  .bubble{max-width:90%}
+}

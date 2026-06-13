@@ -215,6 +215,20 @@ textarea::placeholder{color:var(--faint)}
   .tool-label{display:none}
   .sum-right{grid-template-columns:1fr}
 }
+@media (max-width:480px){
+  .wrap{padding-left:16px;padding-right:16px}
+  .nav-in{gap:10px}
+  .lang button{padding:8px 12px}
+  #phase-input .wrap{padding-top:36px;padding-bottom:60px}
+  .field{padding:18px 16px}
+  .input-foot{padding:14px 16px}
+  .input-foot .btn-lg{width:100%}
+  .big-score b{font-size:68px}
+  .radar text{font-size:15px}
+  .next{padding:26px 20px}
+  .next-btns{width:100%}
+  .next-btns .btn{flex:1;justify-content:center}
+}
 /* ---------- 打印（导出 PDF）---------- */
 @media print{
   nav,#phase-input,#phase-loading,.next,.rep-bar .btns,#toast{display:none!important}

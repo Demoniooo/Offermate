@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState, type CSSProperties } from "react";
 import { REVIEW_I18N, REVIEW_COLORS, PREV_DIMS, type Lang } from "@/lib/review-i18n";
+import { FEEDBACK_URL } from "@/lib/config";
 import type { InterviewDebrief } from "@/lib/types";
 import "./review.css";
 
@@ -173,6 +174,7 @@ export default function Review() {
               </div>
             </div>
             <div className="btns" style={{ display: "flex", gap: 8 }}>
+              <a className="btn btn-primary btn-sm" href={FEEDBACK_URL} target="_blank" rel="noopener noreferrer">{t.feedback_btn}</a>
               <button className="btn btn-ghost btn-sm" onClick={() => toast(t.toast_msg)}>{t.transcript_btn}</button>
               <button className="btn btn-ghost btn-sm" onClick={() => window.print()}>{t.export_btn}</button>
             </div>
