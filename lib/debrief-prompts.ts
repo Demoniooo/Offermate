@@ -88,13 +88,20 @@ export function buildDebriefMessages(resume: string, jd: string | undefined, tur
   const example = JSON.stringify(EXAMPLE[lang]);
   const jdBlock = jd && jd.trim() ? `\n\n=== JD ===\n${jd.trim()}` : "";
 
+  // 候选人专属原话清单：body/before 的引用只许从这里逐字取，杜绝把面试官的话安到候选人头上
+  const candidates = turns.filter((m) => m.role === "candidate");
+  const candList = candidates.length
+    ? candidates.map((m, i) => `C${i + 1}${isZh ? "：" : ": "}${m.content}`).join("\n")
+    : isZh ? "（候选人没有任何回答）" : "(the candidate gave no answers)";
+
   const rules = isZh
     ? `严格要求：
 - 只输出一个 JSON 对象，不要任何解释、不要 markdown 代码块。
 - 顶层字段必须且只能是：level_tag, summary, dimensions, moments, upgrades, recommendation。（总分、追问统计、深度分桶由系统另算，你不要输出。）
 - dimensions 必须恰好 5 项，label 依次为 ${dims}，score 为 0–100 整数。
-- moments 产出 2–3 条：必含 1 条 kind="hl"（高光），其余为 "miss"（翻车）或 "weak"（待改进）；body 必须引用候选人在对话里的原话；affected 写清在第几题第几层（如「Q3 · 追问 L2」）。
-- upgrades 产出 2–3 条：before 引用候选人实录原话，after 给一版照着 STAR 补全口径/动作/结果的更好说法；issues/wins 各 1–3 个短标签。
+- 【分清谁说的·最重要】评价对象只有【候选人】。下面单列了【候选人原话】清单；body 与 before 只能逐字引用该清单里的句子。面试官的提问、面试官话里出现的技术名词/项目背景、以及简历里的文字，统统【不是】候选人的发言或贡献——绝不能写成「候选人说 / 主动提及 X」。下笔前先核对：这句出自【候选人原话】清单吗？不是就不能用，也不能算作他的高光。
+- moments 产出 2–3 条：仅当候选人确有亮点时才给 1 条 kind="hl"（高光，同样只能基于候选人原话；答得普遍空泛就别硬凑高光，宁可全是 miss/weak）；其余用 "miss"（翻车）/"weak"（待改进）；body 必须逐字引用【候选人原话】清单里的句子（不得把面试官说的话当成候选人说的）；affected 写清在第几题第几层（如「Q3 · 追问 L2」）。
+- upgrades 产出 2–3 条：before 逐字取自【候选人原话】清单，after 给一版照着 STAR 补全口径/动作/结果的更好说法；issues/wins 各 1–3 个短标签。
 - 【after 不许编造数字】after 里的数字只能用候选人真实说过的；候选人没给的数字（GMV 金额、百分比、样本量等），一律用「X%」「N 场」「↑XX」这类占位符并在该句末尾加「（替换为你的真实数据）」，绝不替他编造具体数值。
 - 【只依据对话】所有点评、引用、数字都只能来自这场对话与简历；对话里没有的事实不得编造。回答含糊的地方，就如实指出含糊，不要替候选人脑补内容。
 - 【禁止套用示例】示例只约束 JSON 结构，不得把示例里的公司/数字（如「7 日留存」「31.2%」）搬进输出。
@@ -103,8 +110,9 @@ export function buildDebriefMessages(resume: string, jd: string | undefined, tur
 - Output exactly ONE JSON object. No prose, no markdown fences.
 - Top-level keys must be exactly: level_tag, summary, dimensions, moments, upgrades, recommendation. (Overall score, follow-up stats and depth buckets are computed by the system — do not output them.)
 - dimensions: exactly 5, labels in order ${dims}, score an integer 0–100.
-- moments: 2–3 items, MUST include one kind="hl" (highlight); others "miss" or "weak"; body MUST quote the candidate's actual words; affected names the question/layer (e.g. "Q3 · follow-up L2").
-- upgrades: 2–3 items; before quotes the candidate verbatim, after gives a stronger STAR-complete version (definition/action/result); issues/wins are 1–3 short tags each.
+- [WHO SAID IT — MOST IMPORTANT] You evaluate ONLY the candidate. A "Candidate's own words" list is given below; body and before may only quote verbatim from that list. The interviewer's questions, any technical terms or project background the interviewer mentions, and the resume text are NOT the candidate's words or contribution — never write "the candidate said / proactively raised X" for them. Before writing, check: is this from the "Candidate's own words" list? If not, don't use it and don't count it as their highlight.
+- moments: 2–3 items; include one kind="hl" (highlight) ONLY if the candidate genuinely had a strong moment (also grounded only in the candidate's own words) — if the answers were generally vague, don't manufacture a highlight, it's fine to have all "miss"/"weak"; body MUST quote verbatim from the "Candidate's own words" list (never attribute the interviewer's words to the candidate); affected names the question/layer (e.g. "Q3 · follow-up L2").
+- upgrades: 2–3 items; before is taken verbatim from the "Candidate's own words" list, after gives a stronger STAR-complete version (definition/action/result); issues/wins are 1–3 short tags each.
 - [NO FABRICATED NUMBERS IN after] Numbers in after may only be ones the candidate actually said; for any number they didn't give (GMV figures, percentages, sample sizes), use placeholders like "X%", "N events", "↑XX" and append "(replace with your real numbers)" — never invent specific values for them.
 - [GROUND IN THE CONVERSATION] Every judgment, quote and number must come only from this conversation and the resume; never invent details not present. Where the answer was vague, say so — don't fill it in for the candidate.
 - [DO NOT REUSE THE EXAMPLE] The example only constrains JSON structure; never carry its companies/numbers into your output.
@@ -126,6 +134,7 @@ export function buildDebriefMessages(resume: string, jd: string | undefined, tur
     `=== ${isZh ? "简历" : "Resume"} ===\n${resume.trim()}${jdBlock}`,
     `${isZh ? "压力面" : "Pressure mode"}: ${pressure ? (isZh ? "开启（判定从严）" : "ON (judge strictly)") : (isZh ? "关闭" : "OFF")}`,
     `=== ${isZh ? "面试记录" : "Transcript"} ===\n${transcriptText(turns, lang)}`,
+    `=== ${isZh ? "候选人原话（body / before 的引用只能逐字取自这里）" : "Candidate's own words (body / before quotes may ONLY come verbatim from here)"} ===\n${candList}`,
     isZh ? "现在直接输出这场面试对应的 JSON（必须以 { 开头、以 } 结尾）：" : "Now output the JSON for this interview (must start with { and end with }):",
   ].join("\n\n");
 

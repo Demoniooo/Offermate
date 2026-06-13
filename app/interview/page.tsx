@@ -449,7 +449,10 @@ export default function Interview() {
                     disabled={thinking || ended}
                     placeholder={thinking ? t.thinking_ph : t.input_ph}
                     onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+                    onKeyDown={(e) => {
+                      // 输入法合成中（如中文输入法里敲字母选词/上英文）按 Enter 是确认候选，不该发送
+                      if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); }
+                    }}
                   />
                   <span className="count"><span>{input.length}</span><span>{t.count_unit}</span></span>
                 </div>
