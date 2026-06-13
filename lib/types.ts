@@ -166,6 +166,88 @@ export interface InterviewPrep {
   brief: string;
 }
 
+/* ============================================================
+   复盘报告契约（D13）
+   /api/debrief：整场对话回传 → 按 lib/interview-rubric.ts 评分。
+   模型只评判（维度分/点评/话术升级）；计数类（追问次数、深度分桶、总分）服务端算。
+   ============================================================ */
+
+/** 喂 /api/debrief 的一条对话（比 InterviewMessage 多带每轮元信息，供服务端算统计） */
+export interface DebriefTurn {
+  role: "interviewer" | "candidate";
+  content: string;
+  /** 面试官这条是否为追问 */
+  fu?: boolean;
+  /** 追问层级（follow_up_depth，0=主问题） */
+  depth?: number;
+  /** 候选人这条是否被判空泛 */
+  vague?: boolean;
+}
+
+/** /api/debrief 请求体 */
+export interface DebriefRequest {
+  resume: string;
+  jd?: string;
+  pressure?: boolean;
+  turns: DebriefTurn[];
+}
+
+/** 复盘五维单维（对齐 interview-rubric 维度标签） */
+export interface DebriefDimension {
+  label: string;
+  /** 0–100 */
+  score: number;
+  note: string;
+}
+
+/** 关键时刻：1 高光 + 若干翻车/待改进 */
+export interface DebriefMoment {
+  kind: "hl" | "miss" | "weak";
+  dim: string;
+  title: string;
+  /** 引用对话原话说清问题 */
+  body: string;
+  fix: string;
+  /** 发生位置，如「Q3 · 追问 L2」 */
+  affected: string;
+}
+
+/** 逐题话术升级（before=实录，after=更好的说法） */
+export interface DebriefUpgrade {
+  id: string;
+  section: string;
+  tag: string;
+  /** 预估提升，如「+14 分」 */
+  improvement: string;
+  before: string;
+  after: string;
+  issues: string[];
+  wins: string[];
+}
+
+/** 追问深度分桶（一遍过 / L2 后过关 / L3 仍未答实）——服务端从对话结构算 */
+export interface DebriefBucket {
+  title: string;
+  k: "ok" | "weak" | "miss";
+  meta: string;
+  items: string[];
+}
+
+/** /api/debrief 返回体：复盘报告（结构对齐复盘页渲染） */
+export interface InterviewDebrief {
+  /** 本场总分（服务端 = 五维均分，clamp 0–100） */
+  overall_score: number;
+  level_tag: string;
+  summary: string;
+  kpi: { followups: number; highlights: number };
+  dimensions: DebriefDimension[];
+  moments: DebriefMoment[];
+  upgrades: DebriefUpgrade[];
+  buckets: DebriefBucket[];
+  recommendation: string;
+  meta: { questions: number; followups: number; pressure: boolean; role?: string };
+}
+
 /** /api/interview 的返回体：面试官的下一句 + 驱动前端 UI 的元信息 */
 export interface InterviewTurn {
   /** 面试官要说的话（主问题 / 追问 / 收尾语） */

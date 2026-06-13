@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { INTERVIEW_I18N, type Lang } from "@/lib/interview-i18n";
-import type { InterviewTurn, InterviewMessage } from "@/lib/types";
+import type { InterviewTurn, InterviewMessage, DebriefTurn, InterviewDebrief } from "@/lib/types";
 import "./interview.css";
 
 type Phase = "prep" | "prepload" | "chat" | "endload";
@@ -10,7 +10,8 @@ type Msg = { who: "ai" | "me"; text: string; fu?: boolean; depth?: number; vague
 type Ctx = { resume: string; jd: string; role?: string };
 
 const CTX_KEY = "om:interview:ctx";
-const RESULT_KEY = "om:interview:result";
+const DEBRIEF_KEY = "om:interview:debrief";
+const PREV_KEY = "om:interview:debrief:prev"; // 上一场维度分，给复盘页画真实对比
 
 /** 「用样例直接开始」用的内置上下文（含可被追问的具体声明） */
 const SAMPLE: Record<Lang, Ctx> = {
@@ -84,6 +85,7 @@ export default function Interview() {
   const [endStep, setEndStep] = useState(0);
   const [prepError, setPrepError] = useState(false);
   const [sendError, setSendError] = useState(false);
+  const [endError, setEndError] = useState(false);
   const [booted, setBooted] = useState(false); // 读完 sessionStorage 前不渲染 prep，避免空态闪一下
 
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -91,6 +93,7 @@ export default function Interview() {
   const briefRef = useRef<string>("");
   const cursorRef = useRef<{ question_index: number; follow_up_depth: number } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const messagesRef = useRef<Msg[]>([]); // 最新对话，给收尾时的 /api/debrief 用（避开闭包旧值）
   const t = INTERVIEW_I18N[lang];
   const isZh = lang === "zh";
 
@@ -136,9 +139,12 @@ export default function Interview() {
     ta.style.height = Math.min(ta.scrollHeight, 128) + "px";
   }, [input, phase]);
 
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
+
   /** 把一轮 API 结果落到展示态（qi 0-based、depth 1-based 展示）+ 更新游标 */
   function applyTurn(turn: InterviewTurn) {
-    setQi(Math.max(0, turn.question_index - 1));
+    // 服务端已把 question_index clamp 到 [1,total]，这里源头再夹一道冗余防护，进度条永不越界
+    setQi(Math.min(Math.max(turn.question_index - 1, 0), turn.total_questions - 1));
     setDepth(Math.min(turn.follow_up_depth + 1, 3));
     cursorRef.current = { question_index: turn.question_index, follow_up_depth: turn.follow_up_depth };
   }
@@ -222,23 +228,49 @@ export default function Interview() {
 
   function askEnd() { setShowConfirm(true); }
 
-  function endInterview() {
+  // 收尾：在「生成复盘」这一屏里真正调 /api/debrief，出报告后再跳复盘页
+  async function endInterview() {
     abort();
     clearTimers();
     setEnded(true);
     setShowConfirm(false);
     setThinking(false);
-    // 把整场对话 + 上下文留给复盘（D13 /api/debrief 用）
-    try {
-      sessionStorage.setItem(RESULT_KEY, JSON.stringify({
-        resume: ctx?.resume ?? "", jd: ctx?.jd ?? "", brief: briefRef.current, pressure, lang,
-        messages: toApi(messages),
-      }));
-    } catch { /* noop */ }
+    setEndError(false);
     setPhase("endload");
     setEndStep(0);
     later(() => setEndStep(1), 1100);
-    later(() => { window.location.href = "/review"; }, 2600);
+    void generateDebrief();
+  }
+
+  async function generateDebrief() {
+    const ac = new AbortController();
+    abortRef.current = ac;
+    const turns: DebriefTurn[] = messagesRef.current.map((m) => ({
+      role: m.who === "ai" ? "interviewer" : "candidate",
+      content: m.text, fu: m.fu, depth: m.depth, vague: m.vague,
+    }));
+    try {
+      const debrief = await postJSON<InterviewDebrief>("/api/debrief", {
+        resume: ctx?.resume ?? "", jd: ctx?.jd ?? "", pressure, turns, lang,
+      }, ac.signal);
+      if (ctx?.role) debrief.meta.role = ctx.role;
+      try {
+        // 把上一场的维度分留作对比（同会话内 = 真实「再练对比提分」，无需数据库）
+        const oldRaw = sessionStorage.getItem(DEBRIEF_KEY);
+        if (oldRaw) {
+          const old = JSON.parse(oldRaw);
+          if (old?.dimensions?.length === 5) {
+            sessionStorage.setItem(PREV_KEY, JSON.stringify({ dims: old.dimensions.map((d: { score: number }) => d.score), overall: old.overall_score }));
+          }
+        }
+        sessionStorage.setItem(DEBRIEF_KEY, JSON.stringify(debrief));
+      } catch { /* noop */ }
+      window.location.href = "/review";
+    } catch (e) {
+      if ((e as Error)?.name === "AbortError") return;
+      clearTimers();
+      setEndError(true);
+    }
   }
 
   const renderMsg = (m: Msg, i: number) => {
@@ -446,7 +478,16 @@ export default function Interview() {
                   </div>
                 ))}
               </div>
-              <div className="load-foot"><span>{t.endload_foot}</span><span /></div>
+              <div className="load-foot">
+                {endError ? (
+                  <>
+                    <span style={{ color: "var(--bad, #B8401F)" }}>{isZh ? "复盘生成失败,请重试" : "Debrief failed, please retry"}</span>
+                    <a onClick={generateDebrief}>{isZh ? "重试" : "Retry"}</a>
+                  </>
+                ) : (
+                  <><span>{t.endload_foot}</span><span /></>
+                )}
+              </div>
             </div>
           </div>
         </section>
