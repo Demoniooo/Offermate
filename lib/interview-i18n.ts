@@ -60,7 +60,7 @@ export const INTERVIEW_I18N = {
     prep_title: "An interview that actually pushes back — built from your resume.",
     prep_sub: "8 questions. Vague answers get 2–3 layers of follow-up until you can say what you did, how, and what changed. Ends with a debrief in the same comparable format as your diagnosis.",
     job_role_label: "Target role", job_role: "Product Ops Intern",
-    job_co_label: "Company", job_co: "ByteDance · Douyin e-Commerce (from your JD)",
+    job_co_label: "Company", job_co: "TikTok Shop · e-Commerce (from your JD)",
     ctx_chip: "Resume + JD loaded",
     opt_pressure: "Pressure mode", opt_pressure_meta: "Sharper follow-ups · stricter bar",
     q_meta: "8 questions · ~20 min · quit anytime", start_btn: "Start interview",

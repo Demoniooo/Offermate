@@ -146,7 +146,7 @@ GPA 3.6/4.0  ·  数据库系统 / 统计学 / 用户研究 课程优秀
       { label: "Writing HR commentary", meta: "STAR rewrites" }],
     loading_footer_label: "usually < 60s", cancel_btn: "Cancel",
     report_eyebrow: "STEP 02 · Diagnosis report", report_title: "Resume diagnosis",
-    report_meta_1: "Product Ops Intern · ByteDance", report_meta_2: "Generated 2026.06.11 11:42", report_meta_3: "Demo · mock data",
+    report_meta_1: "Product Ops Intern · TikTok Shop", report_meta_2: "Generated 2026.06.11 11:42", report_meta_3: "Demo · mock data",
     edit_btn: "Edit & re-run", export_btn: "Export PDF",
     overall_label: "Overall", level_tag: "Good · 12 fixes away from 90",
     summary_blurb: "Structure and example-choice are solid. Most points are lost on JD fit and clarity — lots of \"responsible / assisted\" verbs, no numbers in results, and the JD's hard skills (SQL, A/B testing) are barely surfaced.",
@@ -185,7 +185,7 @@ GPA 3.6/4.0  ·  数据库系统 / 统计学 / 用户研究 课程优秀
         after: "Ran council account (1.2k → 3.4k followers, 6mo); designed 12 column series, avg 870 reads",
         issues: ["Vague growth"], wins: ["Time range", "Absolute numbers"]
       }],
-    jd_match_title: "Target: Product Ops · ByteDance", match_label: "Match",
+    jd_match_title: "Target: Product Ops · TikTok Shop", match_label: "Match",
     buckets: [
       { title: "Hard skills", hits: 3, total: 5, items: [["Data analysis", "ok"], ["User growth", "ok"], ["A/B testing", "weak"], ["SQL", "miss"], ["Dashboards", "miss"]] },
       { title: "Soft signals", hits: 3, total: 4, items: [["Communication", "ok"], ["Drive", "ok"], ["Cross-team", "ok"], ["Resilience", "weak"]] },
@@ -197,27 +197,27 @@ GPA 3.6/4.0  ·  数据库系统 / 统计学 / 用户研究 课程优秀
     next_sub: "8–10 questions, 2–3 layers of follow-up, generated from this resume + JD. You'll get a debrief in the same side-by-side format.",
     next_btn_primary: "Start mock interview", next_btn_secondary: "Back to edit resume",
     toast_msg: "Mock interview ships in MVP week 2 — stay tuned",
-    sample_resume: `Wang  ·  Renmin University, Information Mgmt, Junior
-hi@example.com  ·  +86 138-0000-0000
+    sample_resume: `Alex Chen  ·  Boston University, Information Systems, Junior
+alex.chen@example.com  ·  +1 (212) 555-0188
 
 EDUCATION
-Renmin University · BSc Information Mgmt · 2022.09–2026.06
-GPA 3.6/4.0 · DB Systems / Statistics / UX Research
+Boston University · BS Information Systems · 2022 – 2026
+GPA 3.6/4.0 · Database Systems / Statistics / UX Research
 
 EXPERIENCE
-Some Internet Co.  ·  Product Ops Intern  ·  2024.06–2024.09
+A DTC e-commerce startup  ·  Product Ops Intern  ·  Jun – Sep 2024
 - Responsible for daily operations, assisted team with various tasks
 - Participated in community event planning, completed assigned work
 - Wrote copy, improved user experience
 
 CAMPUS PROJECTS
-Student Council New Media · Content Lead · 2023.09–present
-- Ran the council's official account, followers grew
+Student Government, Social Media · Content Lead · 2023 – present
+- Ran the student council's Instagram, followers grew
 - Organized offline events, well-received
 
 SKILLS
-Excel, PPT; basic Python; English CET-6`,
-    sample_jd: `Product Ops Intern  ·  ByteDance  ·  Douyin e-Commerce
+Excel, PowerPoint; basic Python; conversational Spanish`,
+    sample_jd: `Product Ops Intern  ·  TikTok Shop  ·  e-Commerce
 
 Responsibilities
 - Drive strategy & impact tracking for creators / merchants
@@ -225,7 +225,7 @@ Responsibilities
 - Write ops SOPs and training material; partner with biz/product/data
 
 Requirements
-- Tier-1 university, junior / senior
+- Currently a junior or senior
 - SQL, basic data analysis
 - Prior user-growth or community ops project
 - Strong communicator, drives outcomes`,

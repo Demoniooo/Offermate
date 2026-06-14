@@ -77,7 +77,7 @@ export const REVIEW_I18N = {
   en: {
     tool_label: "Interview debrief · demo", step1: "Diagnose", step2: "Mock interview", step3: "Debrief",
     eyebrow: "STEP 03 · Interview debrief", title: "Interview debrief",
-    meta: ["Product Ops Intern · ByteDance", "Session 2 · 8 Qs · 23 min", "Pressure ON", "Demo · sample data"],
+    meta: ["Product Ops Intern · TikTok Shop", "Session 2 · 8 Qs · 23 min", "Pressure ON", "Demo · sample data"],
     transcript_btn: "View transcript", export_btn: "Export PDF", feedback_btn: "Give feedback",
     overall_label: "This session", overall_delta: "+6 vs last",
     level_tag: "Good · solid mainline, details crack under follow-ups",
