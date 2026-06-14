@@ -8,6 +8,7 @@
 
 import { NextResponse } from "next/server";
 import { buildDebriefMessages, DEBRIEF_DIMS } from "@/lib/debrief-prompts";
+import { clientIp, rateLimit, type RateRule } from "@/lib/ratelimit";
 import type { DebriefTurn, InterviewDebrief, DebriefBucket } from "@/lib/types";
 import type { Lang } from "@/lib/rubric";
 
@@ -15,6 +16,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const MAX_RESUME = 6000;
+const RATE: RateRule = { windowMs: 60_000, max: 20 }; // 订阅制不计 token，宽松设限：仅防脚本/失控刷量（每 IP 每分钟 20 次）
 const MAX_MSG = 4000;
 const MAX_TURNS = 80;
 
@@ -181,6 +183,12 @@ function sanitizeTurns(raw: unknown): DebriefTurn[] {
 }
 
 export async function POST(req: Request) {
+  // 限流前置：挡住刷量再调模型
+  const rl = rateLimit(`debrief:${clientIp(req)}`, RATE);
+  if (!rl.ok) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } });
+  }
+
   let body: { resume?: string; jd?: string; pressure?: boolean; turns?: unknown; lang?: string };
   try {
     body = await req.json();

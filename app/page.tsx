@@ -6,14 +6,14 @@ import { FEEDBACK_URL } from "@/lib/config";
 import { RUBRIC } from "@/lib/rubric";
 import "./landing.css";
 
-// D3 才会建 /diagnose 路由；现在按钮先指向它（建好前点击会 404）。
-const DIAGNOSE = "/diagnose";
-const DIAGNOSE_SAMPLE = "/diagnose?sample=1";
-
 export default function Home() {
   const [lang, setLang] = useState<Lang>("zh");
   const t = LANDING_I18N[lang];
   const r = RUBRIC[lang];
+
+  // 诊断/样例链接带上当前语言，英文用户进入诊断页不会落到中文界面
+  const DIAGNOSE = `/diagnose?lang=${lang}`;
+  const DIAGNOSE_SAMPLE = `/diagnose?sample=1&lang=${lang}`;
 
   // 顶部条幅：把 "MVP · 求职季限免开放" 拆成 标签 + 文案
   const [tbTag, ...tbRest] = t.hero_badge.split(" · ");
@@ -164,8 +164,8 @@ export default function Home() {
               </div>
             </div>
             <div className="demo-foot">
-              <span className="chip warn"><span>{t.tag_finding}</span> · 7</span>
-              <span className="chip ok"><span>{t.tag_rewrite}</span> · 12</span>
+              <span className="chip warn"><span>{t.tag_finding}</span> · 3</span>
+              <span className="chip ok"><span>{t.tag_rewrite}</span> · 3</span>
               <a className="view-link" href={DIAGNOSE_SAMPLE}><span>{t.view_full}</span> →</a>
             </div>
           </div>
@@ -176,10 +176,10 @@ export default function Home() {
       <section className="trust">
         <div className="wrap trust-in">
           <span className="trust-label">{t.trust_label}</span>
-          <div className="stat"><b>1222 万</b><span>{t.trust_1}</span></div>
-          <div className="stat"><b>¥200–500</b><span>{t.trust_2}</span></div>
-          <div className="stat"><b>1–2 周</b><span>{t.trust_3}</span></div>
-          <div className="stat"><b>~47 s</b><span>{t.trust_4}</span></div>
+          <div className="stat"><b>{t.trust_1_val}</b><span>{t.trust_1}</span></div>
+          <div className="stat"><b>{t.trust_2_val}</b><span>{t.trust_2}</span></div>
+          <div className="stat"><b>{t.trust_3_val}</b><span>{t.trust_3}</span></div>
+          <div className="stat"><b>{t.trust_4_val}</b><span>{t.trust_4}</span></div>
         </div>
       </section>
 

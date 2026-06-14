@@ -6,6 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { buildDiagnosisMessages, DIMENSION_LABELS } from "@/lib/prompts";
+import { clientIp, rateLimit, type RateRule } from "@/lib/ratelimit";
 import type { DiagnosisReport } from "@/lib/types";
 import type { Lang } from "@/lib/rubric";
 
@@ -13,6 +14,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const MAX_RESUME = 6000;
+const RATE: RateRule = { windowMs: 60_000, max: 20 }; // 订阅制不计 token，宽松设限：仅防脚本/失控刷量（每 IP 每分钟 20 次）
 
 /** 容错解析：去掉可能的代码块/前后缀，提取最外层 {...} */
 function parseReport(content: string): DiagnosisReport | null {
@@ -139,6 +141,12 @@ async function callLLM(messages: { role: string; content: string }[], clientSign
 }
 
 export async function POST(req: Request) {
+  // 限流前置：先挡住刷量，再谈解析与调模型（防匿名刷爆付费网关预算）
+  const rl = rateLimit(`diagnose:${clientIp(req)}`, RATE);
+  if (!rl.ok) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } });
+  }
+
   let body: { resume?: string; jd?: string; lang?: string };
   try {
     body = await req.json();

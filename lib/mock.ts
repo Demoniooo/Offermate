@@ -5,8 +5,9 @@
    ============================================================ */
 
 import type { DiagnosisReport } from "./types";
+import type { Lang } from "./rubric";
 
-export const mockReport: DiagnosisReport = {
+const zh: DiagnosisReport = {
   overall_score: 86,
   level_tag: "良好 · 距离 90 还差 12 个改动",
   summary:
@@ -20,7 +21,7 @@ export const mockReport: DiagnosisReport = {
     { label: "STAR 结构", score: 76, note: "Result 经常省略" },
   ],
 
-  kpi: { findings_count: 7, rewrites_count: 12 },
+  kpi: { findings_count: 3, rewrites_count: 3 },
 
   findings: [
     {
@@ -131,7 +132,142 @@ export const mockReport: DiagnosisReport = {
   },
 
   next_steps: {
-    title: "把这 12 处改写应用到简历，再来一场模拟面试",
+    title: "把这些改写应用到简历，再来一场模拟面试",
     subtitle: "按目标岗位生成 8–10 题，对空泛回答追问 2–3 层，最后给你一份可对比的复盘报告。",
   },
 };
+
+// 英文样例报告：与 zh 同结构、同分数；severity / status 仍用契约里的中文枚举
+// （"高/中/低"、"命中/弱/缺失"——UI 据此派生颜色与 High/Med/Low 文案），所有展示文本为英文。
+const en: DiagnosisReport = {
+  overall_score: 86,
+  level_tag: "Good · 12 changes away from 90",
+  summary:
+    "Overall this is a well-chosen, clearly structured resume — just short of clearing the initial screen. The biggest issues are weak verbs and frequently omitted results, so a recruiter can't see your real contribution; on JD fit, two hard requirements — SQL and experiment methodology — aren't shown. Rewrite your top 3 experiences in quantified STAR form first, and both fit and persuasiveness will rise together.",
+
+  dimensions: [
+    { label: "Clarity", score: 78, note: "Weak verbs, lots of room to quantify" },
+    { label: "Logic", score: 82, note: "Timeline and cause-effect are clear" },
+    { label: "JD Fit", score: 71, note: "SQL and experiment methods not shown" },
+    { label: "Examples", score: 85, note: "Good material, stories can go deeper" },
+    { label: "STAR structure", score: 76, note: "Result is often omitted" },
+  ],
+
+  kpi: { findings_count: 3, rewrites_count: 3 },
+
+  findings: [
+    {
+      id: "F-01",
+      severity: "高",
+      dimension: "Clarity",
+      basis: "Harvard·MIT standards · strong verbs / achievement-oriented",
+      title: "\"Responsible for / assisted\" appears 6 times — it says nothing",
+      body: "It's not clear what you actually did. Replace each one with a measurable, observable action: led / designed / broke down / shipped / A/B-tested…",
+      suggestion: "Swap each \"responsible/assisted\" for a strong verb + one quantified result, e.g. \"Led 3 onboarding events, +11% 7-day retention\".",
+      affected: "Affects 3 experiences",
+    },
+    {
+      id: "F-02",
+      severity: "中",
+      dimension: "JD Fit",
+      basis: "Job-skills DB · hard-skill gap",
+      title: "SQL and A/B experiment methodology are never mentioned",
+      body: "The JD lists \"data analysis + experiments\" as hard requirements, but the resume shows no SQL and no experiment design or significance testing. Even one line in one experience would recover some fit.",
+      suggestion: "Add a data course/project stating what you did with SQL and which dashboard you built — put the JD's named hard skills on paper.",
+      affected: "Fit -14 pts",
+    },
+    {
+      id: "F-03",
+      severity: "中",
+      dimension: "STAR · structure",
+      basis: "Employer preferences · quantified outcomes, results-first",
+      title: "Result is often omitted — the story is only half told",
+      body: "Most experiences stop at \"what I did\" with no \"what it produced\". Add one quantifiable Result to each: retention, conversion, efficiency or scale — any one.",
+      suggestion: "Add a quantifiable Result to each experience — retention/conversion/efficiency/scale, e.g. \"account reads 870 → 1.4k\".",
+      affected: "Affects 4 experiences",
+    },
+  ],
+
+  rewrites: [
+    {
+      id: "R-01",
+      section: "Internship · Internet company",
+      tag: "Ops intern",
+      improvement: "+18 pts",
+      before: "Responsible for daily operations, assisted the team with various tasks",
+      after: "Led 3 new-user onboarding events (≈2.4k daily reach); A/B-tested copy to lift 7-day retention by 11%",
+      issues: ["Weak verbs", "No result"],
+      wins: ["Quantified", "Methodology", "JD keywords"],
+    },
+    {
+      id: "R-02",
+      section: "Project · campus data analysis",
+      tag: "Data volunteer",
+      improvement: "+12 pts",
+      before: "Took part in data cleanup, helped the professor finish a survey report",
+      after: "Cleaned 12k survey rows with SQL, built 3 metric dashboards, cut weekly-report turnaround from 2 days to 4 hours",
+      issues: ["Passive role", "No hard skill"],
+      wins: ["Quantified", "SQL", "Efficiency gain"],
+    },
+    {
+      id: "R-03",
+      section: "Club · student union",
+      tag: "PR lead",
+      improvement: "+9 pts",
+      before: "Responsible for the official account, grew the following",
+      after: "Rebuilt the account's content SOP, 12 posts/month, 0→4.3k followers in 3 months, top post 11k reads",
+      issues: ["Vague result", "No method"],
+      wins: ["Quantified", "Ops SOP", "Reusable method"],
+    },
+  ],
+
+  jd_match: {
+    overall: 68,
+    buckets: [
+      {
+        title: "Hard skills",
+        hits: 2,
+        total: 5,
+        items: [
+          { label: "Data analysis", status: "命中" },
+          { label: "User growth", status: "命中" },
+          { label: "A/B testing", status: "弱" },
+          { label: "SQL", status: "缺失" },
+          { label: "Dashboards", status: "缺失" },
+        ],
+      },
+      {
+        title: "Soft signals",
+        hits: 3,
+        total: 4,
+        items: [
+          { label: "Communication", status: "命中" },
+          { label: "Drive", status: "命中" },
+          { label: "Cross-team", status: "命中" },
+          { label: "Resilience", status: "弱" },
+        ],
+      },
+      {
+        title: "Hidden keywords",
+        hits: 1,
+        total: 4,
+        items: [
+          { label: "Creators/sellers", status: "缺失" },
+          { label: "Ops SOP", status: "缺失" },
+          { label: "E-commerce", status: "弱" },
+          { label: "Community ops", status: "命中" },
+        ],
+      },
+    ],
+    recommendation:
+      "Prioritize SQL and dashboards under Hard skills: in any data-related experience, state what you did with SQL and which dashboard you produced. Hidden keywords like \"Ops SOP / creators & sellers\" are worth naming if you have relevant experience — the JD doesn't spell them out, but recruiters quietly reward them.",
+  },
+
+  next_steps: {
+    title: "Apply these rewrites, then run a mock interview",
+    subtitle: "8–10 role-specific questions, 2–3 follow-up layers on vague answers, ending in a comparable debrief.",
+  },
+};
+
+/** 样例报告（按语言取）。落地页「看样例报告」与 /diagnose?sample=1 据当前语言渲染。 */
+export const MOCK_REPORT: Record<Lang, DiagnosisReport> = { zh, en };

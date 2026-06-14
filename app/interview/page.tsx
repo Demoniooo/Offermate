@@ -7,7 +7,7 @@ import "./interview.css";
 
 type Phase = "prep" | "prepload" | "chat" | "endload";
 type Msg = { who: "ai" | "me"; text: string; fu?: boolean; depth?: number; vague?: boolean };
-type Ctx = { resume: string; jd: string; role?: string };
+type Ctx = { resume: string; jd: string; role?: string; pressure?: boolean };
 
 const CTX_KEY = "om:interview:ctx";
 const DEBRIEF_KEY = "om:interview:debrief";
@@ -110,8 +110,10 @@ export default function Interview() {
         if (raw) {
           const c = JSON.parse(raw);
           if (c && typeof c.resume === "string" && c.resume.trim()) {
-            setCtx({ resume: c.resume, jd: typeof c.jd === "string" ? c.jd : "", role: c.role });
+            setCtx({ resume: c.resume, jd: typeof c.jd === "string" ? c.jd : "", role: c.role, pressure: c.pressure === true });
             if (c.lang === "en" || c.lang === "zh") setLang(c.lang);
+            // 继承诊断页的「压力面」选择（用户在面试准备页仍可改）
+            if (typeof c.pressure === "boolean") setPressure(c.pressure);
           }
         }
       }

@@ -16,6 +16,7 @@ import {
   type TurnDirective,
 } from "@/lib/interview-prompts";
 import { MAX_BRIEF } from "@/lib/jd-research";
+import { clientIp, rateLimit, type RateRule } from "@/lib/ratelimit";
 import type { InterviewMessage, InterviewTurn, InterviewKind } from "@/lib/types";
 import type { Lang } from "@/lib/rubric";
 
@@ -23,6 +24,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const MAX_RESUME = 6000;
+const RATE: RateRule = { windowMs: 60_000, max: 40 }; // 订阅制不计 token，宽松设限：仅防脚本/失控刷量（每 IP 每分钟 40 轮）
 const MAX_MSG = 4000;     // 单条消息截断
 const MAX_HISTORY = 40;   // 只保留最近 N 条，防 prompt 膨胀
 const HARD_DONE_AT = 24;  // 候选人回答数 ≥ 此值：服务端强制收尾（防失控）
@@ -147,6 +149,12 @@ function resolve(plan: Plan, modelKind: InterviewKind): Omit<InterviewTurn, "rep
 }
 
 export async function POST(req: Request) {
+  // 限流前置：挡住刷量再调模型
+  const rl = rateLimit(`interview:${clientIp(req)}`, RATE);
+  if (!rl.ok) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } });
+  }
+
   let body: { resume?: string; jd?: string; pressure?: boolean; messages?: unknown; cursor?: unknown; brief?: string; lang?: string };
   try {
     body = await req.json();

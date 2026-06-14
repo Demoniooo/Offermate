@@ -19,12 +19,12 @@ export const DIAGNOSIS_I18N = {
     options_label: "诊断选项",
     opt_pressure: "压力面模式", opt_pressure_meta: "模拟面试时启用",
     opt_anon: "本地脱敏", opt_anon_meta: "发送前遮蔽邮箱 / 电话",
-    privacy_1: "不存储简历内容", privacy_2: "不收集邮箱", privacy_3: "关闭页面即销毁",
+    privacy_1: "邮箱/电话默认本地遮蔽", privacy_2: "简历仅用于生成你的报告", privacy_3: "不出售你的数据",
     generate_btn: "生成诊断报告",
     perks: [
       { tag: "怎么用", text: "把简历从 Word / PDF 选中复制，粘贴到左侧框。我们只读文字，不读格式。" },
       { tag: "想加分", text: "右侧贴一份目标岗位 JD，会额外给一份匹配度分析和定向改写建议。" },
-      { tag: "隐私", text: "所有内容在浏览器里处理。报告生成后，简历不会存在我们任何一台服务器上。" }],
+      { tag: "隐私", text: "邮箱、电话会在发送前于本地遮蔽。简历会发送给 AI 模型以生成你的诊断报告；我们不会出售你的数据，账号体系上线后会提供完整隐私说明。" }],
     loading_eyebrow: "生成中", loading_title: "让一位校招 HR 帮你看完简历……", loading_sub: "预计 30–60 秒。可以离开这个页面去倒杯水。",
     loading_steps: [
       { label: "解析简历结构", meta: "提取段落 / 经历" },
@@ -132,12 +132,12 @@ GPA 3.6/4.0  ·  数据库系统 / 统计学 / 用户研究 课程优秀
     options_label: "Options",
     opt_pressure: "Pressure mode", opt_pressure_meta: "used in mock interview",
     opt_anon: "Anonymize locally", opt_anon_meta: "masks email & phone before sending",
-    privacy_1: "Resume never stored", privacy_2: "No email collected", privacy_3: "Close the tab — it's gone",
+    privacy_1: "Email & phone masked locally", privacy_2: "Used only to generate your report", privacy_3: "We don't sell your data",
     generate_btn: "Generate report",
     perks: [
       { tag: "How", text: "Select-all your resume in Word or PDF and paste into the left box. We read text only, ignore formatting." },
       { tag: "Bonus", text: "Paste a JD on the right and you also get a match analysis with targeted rewrite suggestions." },
-      { tag: "Privacy", text: "Everything is processed in your browser session. Once the report is shown, the resume is not persisted on any of our servers." }],
+      { tag: "Privacy", text: "Email and phone are masked locally before sending. Your resume is sent to an AI model to generate your diagnosis; we don't sell your data, and a full privacy policy will ship with accounts." }],
     loading_eyebrow: "Working", loading_title: "A campus recruiter is reading your resume…", loading_sub: "Estimated 30–60s. Feel free to step away.",
     loading_steps: [
       { label: "Parsing resume structure", meta: "sections / experiences" },

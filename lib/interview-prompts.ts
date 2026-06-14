@@ -61,18 +61,35 @@ const speaker = (lang: Lang, role: InterviewMessage["role"]) =>
     ? role === "interviewer" ? "面试官" : "候选人"
     : role === "interviewer" ? "Interviewer" : "Candidate";
 
-/** 一个合法返回示例——强约束 JSON 结构（模型只回这三个字段） */
-const EXAMPLE: Record<Lang, string> = {
-  zh: JSON.stringify({
-    reply: "你说这个活动「效果不错」——具体是哪个指标、对照之前提升了多少？给我一个数字。",
-    kind: "follow_up",
-    vague: true,
-  }),
-  en: JSON.stringify({
-    reply: "You said the campaign \"did well\" — by which metric, and up how much versus before? Give me one number.",
-    kind: "follow_up",
-    vague: true,
-  }),
+/**
+ * 两个合法返回示例——分别示范两种分支，避免模型只照抄「追问」这一种。
+ * vague=true 配 follow_up；vague=false 配 question（答得充分就进下一题）。
+ */
+const EXAMPLE: Record<Lang, { vague: string; solid: string }> = {
+  zh: {
+    vague: JSON.stringify({
+      reply: "你说这个活动「效果不错」——具体是哪个指标、对照之前提升了多少？给我一个数字。",
+      kind: "follow_up",
+      vague: true,
+    }),
+    solid: JSON.stringify({
+      reply: "数据、做法和对照都讲清楚了，挺扎实。那我们看下一题：……（这里直接抛出下一道主问题）",
+      kind: "question",
+      vague: false,
+    }),
+  },
+  en: {
+    vague: JSON.stringify({
+      reply: "You said the campaign \"did well\" — by which metric, and up how much versus before? Give me one number.",
+      kind: "follow_up",
+      vague: true,
+    }),
+    solid: JSON.stringify({
+      reply: "Numbers, method and baseline are all clear — solid. Next question: …（ask the next main question here）",
+      kind: "question",
+      vague: false,
+    }),
+  },
 };
 
 export interface InterviewPromptInput {
@@ -113,45 +130,49 @@ export function buildInterviewMessages(input: InterviewPromptInput): { role: "sy
   const directiveZh: Record<TurnDirective, string> = {
     first: `这是开场。直接给出第 ${nextQuestion} 道主问题，主题：「${nextTheme}」。先用一句话欢迎候选人，再扣住简历/JD 的具体内容提问。kind 填 "question"。`,
     advance: `上一题到此为止（追问已封顶或已答透），现在【进入下一道主问题】。出第 ${nextQuestion} 道主问题，主题：「${nextTheme}」，必须扣住简历或 JD 的具体内容（点名某段经历/数字/技能）。kind 填 "question"，不要再追问上一题。`,
-    open: `你正在进行第 ${currentQuestion} 道主问题，已追问 ${followDepth}/${MAX_FOLLOW_UPS} 层。先判断候选人上一条回答是否空泛（缺数字/方法/对照）：\n  · 若空泛 → 针对【缺失的那一点】追问，逼出「做了什么、怎么做、结果如何」，kind 填 "follow_up"。\n  · 若已具体充分 → 进入第 ${nextQuestion} 道主问题，主题：「${nextTheme}」，kind 填 "question"。\n不要在最后一题之前就收尾。`,
+    open: `你正在进行第 ${currentQuestion} 道主问题，已追问 ${followDepth}/${MAX_FOLLOW_UPS} 层。先判断候选人上一条回答是否空泛：\n  · 若空泛（基本没有数字/结果、或只给了结论没讲具体做法、或通篇套话）→ vague 填 true、kind 填 "follow_up"，针对【最关键的那个缺失点】追问一次。\n  · 若已答得充分（把「做了什么、怎么做、结果如何」讲清楚了，哪怕不是每个数字都完美）→ vague 填 false、kind 填 "question"，直接进入第 ${nextQuestion} 道主问题，主题：「${nextTheme}」，不要再追问上一题。\nvague 与 kind 必须一致：追问 = 你认为还没答到位；进下一题 = 你认为答够了。答得扎实就大方推进，别对已经讲清楚的回答继续纠缠。不要在最后一题之前就收尾。`,
     close: `面试到此结束（已答完或对话足够长）。给一段简短、真诚的收尾语并致谢，不要再提问。kind 填 "closing"。`,
   };
   const directiveEn: Record<TurnDirective, string> = {
     first: `This is the opening. Give main question ${nextQuestion}, theme: "${nextTheme}". Briefly welcome the candidate, then ask, anchored to specific resume/JD content. Set kind to "question".`,
     advance: `The previous question is done (follow-ups capped or fully answered); now [move to the next main question]. Ask main question ${nextQuestion}, theme: "${nextTheme}", anchored to specific resume/JD content (name an experience/number/skill). Set kind to "question"; do not follow up the previous one.`,
-    open: `You are on main question ${currentQuestion}, with ${followDepth}/${MAX_FOLLOW_UPS} follow-ups so far. First judge whether the candidate's last answer is vague (missing numbers/method/comparison):\n  · If vague → follow up on [the missing piece] to force out "what they did, how, and what changed", set kind to "follow_up".\n  · If concrete and complete → move to main question ${nextQuestion}, theme: "${nextTheme}", set kind to "question".\nDo not close before the final question.`,
+    open: `You are on main question ${currentQuestion}, with ${followDepth}/${MAX_FOLLOW_UPS} follow-ups so far. First judge whether the candidate's last answer is vague:\n  · If vague (almost no numbers/result, or a conclusion with no concrete method, or all filler) → set vague=true, kind="follow_up", and probe the single most important missing piece once.\n  · If it's already solid (they made clear what they did, how, and what changed — even if not every number is perfect) → set vague=false, kind="question", and move straight to main question ${nextQuestion}, theme: "${nextTheme}"; do not follow up the previous one.\nvague and kind must agree: a follow-up means you think it's not answered well enough; moving on means you think it's good enough. When an answer is solid, advance confidently — don't keep poking at something already explained. Do not close before the final question.`,
     close: `The interview ends here (answered, or the conversation is long enough). Give a short, sincere closing remark and thank them; ask nothing further. Set kind to "closing".`,
   };
 
   const rules = isZh
     ? `规则：
 - 全场约 ${TARGET_QUESTIONS} 道主问题，主题轴依次为：${arcLine}
-- 判定回答是否空泛，看三点：① 有没有数字/量化结果；② 有没有讲清具体方法（怎么做的）；③ 有没有对照/基线/结果。缺关键项或套话即为空泛。
+- 判定空泛要克制：只有当回答基本没有数字/结果、或只有结论没有具体做法、或通篇套话时，才算空泛。三项（数字、方法、对照）里只缺一项、但整体把事情讲清楚了，就算充分——进入下一题，别因为不够完美就一直追问。
 - ${pressure
-        ? "【压力面开启】语气更直接、不留情面，明确要求给事实和数字、不要形容词，可点破回答里的矛盾或回避。"
-        : "【常规模式】语气专业、克制、鼓励，但保持持续深挖，不因为对方客气就放水。"}
+        ? "【压力面开启】语气更直接、不留情面，明确要求给事实和数字、不要形容词，可点破回答里的矛盾或回避；但只要确实答到位了，照样推进到下一题。"
+        : "【常规模式】语气专业、克制、鼓励：答得不到位就追问到位，答得扎实就大方推进到下一题，不做无谓纠缠。"}
 - reply 用自然中文，一段话，不要列点、不要 markdown。
 - vague 字段：填你对【上一条候选人回答是否空泛】的判断；开场没有候选人回答时填 false。`
     : `Rules:
 - About ${TARGET_QUESTIONS} main questions total; theme axes in order: ${arcLine}
-- Judge vagueness by three things: (1) numbers/quantified results; (2) a concrete method (how); (3) a baseline/comparison/result. Missing a key one, or generic filler, means vague.
+- Judge vagueness sparingly: an answer is vague only if it has almost no numbers/result, or gives a conclusion with no concrete method, or is all filler. Missing just one of the three (number / method / comparison) while still making the story clear counts as adequate — move on; don't keep following up just because it isn't perfect.
 - ${pressure
-        ? "[PRESSURE MODE ON] Blunter, less forgiving; explicitly demand facts and numbers, not adjectives; you may call out contradictions or dodges."
-        : "[NORMAL MODE] Professional, measured, encouraging — but keep digging; don't go easy just because they're polite."}
+        ? "[PRESSURE MODE ON] Blunter, less forgiving; explicitly demand facts and numbers, not adjectives; you may call out contradictions or dodges — but once it is genuinely answered, still advance to the next question."
+        : "[NORMAL MODE] Professional, measured, encouraging: follow up when an answer falls short, but advance confidently to the next question when it's solid — no needless poking."}
 - reply: natural English prose, one paragraph, no bullet points, no markdown.
 - vague: your judgment on whether [the candidate's last answer was vague]; false at the opening when there's no answer yet.`;
 
   const schema = isZh
-    ? `只输出一个 JSON 对象，键名与下例完全一致，且只含这三个键：
+    ? `只输出一个 JSON 对象，只含这三个键：
 - reply：面试官这一轮要说的话。
 - kind："question" | "follow_up" | "closing"（按上方【本轮任务】填）。
-- vague：布尔。
-示例：${EXAMPLE.zh}`
-    : `Output exactly ONE JSON object with these three keys only, matching the example:
+- vague：布尔，表示上一条候选人回答是否空泛（必须与 kind 一致：追问→true，进下一题/收尾→false）。
+两种典型情况各举一例（按实际情况二选一，只输出一个对象）：
+- 上一条空泛：${EXAMPLE.zh.vague}
+- 上一条已答充分：${EXAMPLE.zh.solid}`
+    : `Output exactly ONE JSON object with these three keys only:
 - reply: what the interviewer says this turn.
 - kind: "question" | "follow_up" | "closing" (per [This turn] above).
-- vague: boolean.
-Example: ${EXAMPLE.en}`;
+- vague: boolean — whether the candidate's last answer was vague (must agree with kind: follow_up→true, question/closing→false).
+Two typical cases, one example each (pick one per the actual situation, output a single object):
+- Last answer vague: ${EXAMPLE.en.vague}
+- Last answer solid: ${EXAMPLE.en.solid}`;
 
   const jdBlock = jd && jd.trim()
     ? `\n\n=== JD ===\n${jd.trim()}`

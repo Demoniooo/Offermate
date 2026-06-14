@@ -8,12 +8,15 @@
 
 import { NextResponse } from "next/server";
 import { buildResearchMessages, MAX_BRIEF } from "@/lib/jd-research";
+import { clientIp, rateLimit, type RateRule } from "@/lib/ratelimit";
 import type { Lang } from "@/lib/rubric";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const MAX_RESUME = 6000;
+// 联网搜索每次面试只调一次；订阅制不计 token，宽松设限：仅防脚本/失控刷量（每 IP 每分钟 20 次）
+const RATE: RateRule = { windowMs: 60_000, max: 20 };
 
 /** 带联网搜索的一次调用：webSearch 结果内联进正文，返回纯文本简报 */
 async function research(messages: { role: string; content: string }[], clientSignal?: AbortSignal): Promise<string> {
@@ -52,6 +55,12 @@ async function research(messages: { role: string; content: string }[], clientSig
 }
 
 export async function POST(req: Request) {
+  // 限流前置：联网搜索最贵，先挡刷量
+  const rl = rateLimit(`prepare:${clientIp(req)}`, RATE);
+  if (!rl.ok) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } });
+  }
+
   let body: { resume?: string; jd?: string; lang?: string };
   try {
     body = await req.json();

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { DIAGNOSIS_I18N, SEV_COLORS, type Lang } from "@/lib/diagnosis-i18n";
-import { mockReport } from "@/lib/mock";
+import { MOCK_REPORT } from "@/lib/mock";
 import { maskPII } from "@/lib/mask";
 import type { DiagnosisReport, Severity, JDStatus } from "@/lib/types";
 import "./diagnose.css";
@@ -99,7 +99,7 @@ export default function Diagnose() {
   }
 
   // 样例：用 mock 报告，免费、不调接口（落地页「看样例报告」）
-  function runDemo() {
+  function runDemo(demoLang: Lang = lang) {
     clearTimers();
     setError(false);
     setIsDemo(true);
@@ -109,7 +109,7 @@ export default function Diagnose() {
     stepTimers(seq);
     timersRef.current.push(
       setTimeout(() => {
-        setReport(mockReport);
+        setReport(MOCK_REPORT[demoLang]);
         setPhase("report");
       }, seq[seq.length - 1] + 600)
     );
@@ -174,13 +174,17 @@ export default function Diagnose() {
     };
   }, [phase, report]);
 
-  // ?sample=1 直接看样例报告
+  // 进入诊断页时读 ?lang=（落地页带过来），英文用户不会落到中文页面；?sample=1 直接看样例报告
   useEffect(() => {
+    let initLang: Lang = lang;
     try {
-      if (new URLSearchParams(window.location.search).get("sample") === "1") {
-        setResume(DIAGNOSIS_I18N.zh.sample_resume);
-        setJd(DIAGNOSIS_I18N.zh.sample_jd);
-        runDemo();
+      const params = new URLSearchParams(window.location.search);
+      const qlang = params.get("lang");
+      if (qlang === "en" || qlang === "zh") { initLang = qlang; setLang(qlang); }
+      if (params.get("sample") === "1") {
+        setResume(DIAGNOSIS_I18N[initLang].sample_resume);
+        setJd(DIAGNOSIS_I18N[initLang].sample_jd);
+        runDemo(initLang);
       }
     } catch {
       /* noop */
@@ -192,6 +196,12 @@ export default function Diagnose() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 样例报告随语言切换重渲染（本地 mock，不重新请求接口）
+  useEffect(() => {
+    if (isDemo) setReport(MOCK_REPORT[lang]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
   const methodNote = isZh
     ? "评估依据：NACE · 雇主偏好 · Harvard/MIT · 岗位技能库"
@@ -466,7 +476,7 @@ export default function Diagnose() {
                   href="/interview"
                   onClick={() => {
                     // 把简历 + JD 带进模拟面试（同源 sessionStorage；面试页据此调用真接口）。脱敏开则带掩码版
-                    try { sessionStorage.setItem("om:interview:ctx", JSON.stringify({ resume: anon ? maskPII(resume) : resume, jd, lang })); } catch { /* noop */ }
+                    try { sessionStorage.setItem("om:interview:ctx", JSON.stringify({ resume: anon ? maskPII(resume) : resume, jd, lang, pressure })); } catch { /* noop */ }
                   }}
                 ><span>{t.next_btn_primary}</span> →</a>
                 <button className="btn btn-ghost btn-lg" onClick={backToInput}>{t.next_btn_secondary}</button>
